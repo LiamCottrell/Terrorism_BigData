@@ -1,0 +1,29 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\section{Introduction}
+\label{sec:title}
+Test
+
+\subsection{Subtitle}
+\label{ssec:subtitle}
+
+Plain text.
+<<>>=
+getwd()
+setwd("D:/Users/LiamC/Documents/Big Data/Coursework/Terrorism_BigData")
+orig_df = read.csv("Assets/globalterrorismdb.csv")  # read csv file
+my_df <- orig_df
+nrow(my_df)
+ncol(my_df)
+@
+
+
+\subsection{Another subtitle}
+\label{ssec:another_subtitle}
+
+More plain text.
+
+\end{document}
