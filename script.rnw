@@ -13,11 +13,10 @@ Test
 Plain text.
 <<>>=
 getwd()
-setwd("D:/Users/LiamC/Documents/Big Data/Coursework/Terrorism_BigData")
 orig_df = read.csv("Assets/globalterrorismdb.csv")  # read csv file
 my_df <- orig_df
-nrow(my_df)
-ncol(my_df)
+attach(my_df)
+dim(my_df)
 @
 
 
