@@ -12,6 +12,8 @@ Test
 
 Plain text.
 <<List of packages that will be utilised in my application, eval=TRUE, echo=TRUE>>=
+library(tidyverse)
+library(knitr)
 library(ggplot2)
 library(ggmap)
 library(maps)
@@ -25,11 +27,21 @@ library(wordcloud2)
 library(Matrix)
 library(tidytext)
 library(magrittr)
+library(webshot)
+
+library(randomForest)
+library(caret)
+library(forcats)
+
+
+library(shiny)
+library(trelliscope)
+library(trelliscopejs)
 @
 
 <<Import dataset from csv file, eval=TRUE, echo=TRUE>>=
 # Import csv file from the Assets folder
-orig_df = read.csv("Assets/globalterrorismdb.csv")  # read csv file
+orig_df = read.csv("Assets/globalterrorismdb.csv", na.strings=c("", "NA", "NULL"))  # read csv file
 # Once dataset has been imported and asigned, create a working copy that we can use in our application
 my_df <- orig_df
 # we will now use tha attach command to allow us to refrence features without having to state what table they are from in our script
@@ -88,7 +100,47 @@ buildCorpus <- function(someText){
   # Return the text corpus
   return(myCorpus)
 }
+
+widgetThumbnail <- function(p, thumbName, width = 1024, height = 768) {
+  phantom <- findPhantom()
+
+  success <- FALSE
+  if(phantom == "") {
+    message("** phantomjs dependency could not be found - thumbnail cannot be generated (run phantomInstall() for details)")
+  } else {
+    res <- try({
+      ff <- paste0(thumbName, ".html")
+      ffjs <- paste0(thumbName, ".js")
+
+      # don't want any padding
+      p$sizingPolicy$padding <- 0
+      suppressMessages(saveWidget(p, ff, selfcontained = FALSE))
+
+      js <- paste0("var page = require('webpage').create();
+                    page.viewportSize = { width: ", width,", height: ", height," };
+                    page.clipRect = { top: 0, left: 0, width: ", width,", height: ", height," };
+                    page.open('", ff, "', function(status) {
+                    console.log(\"Status: \" + status);
+                    if(status === \"success\") {
+                    page.render('", thumbName, ".png');
+                    }
+                    phantom.exit();
+                    });")
+      cat(js, file = ffjs)
+      system2(phantom, ffjs)
+    })
+    if(!inherits(res, "try-error")) {
+      success <- TRUE
+    }
+    if(!file.exists(paste0(thumbName, ".png"))) {
+      success <- FALSE
+    }
+  }
+}
+
 @
+
+
 
 
 <<>>=
@@ -109,7 +161,7 @@ summarySplits = split(my_df.full_summary, g)
 
 @
 
-<<>>=
+<<Construct DocumentTermMatrix from set1 then create dataframe with word frequency>>=
 test<-as.data.frame(summarySplits$set.1$summary)
 my_df.corpus <- buildCorpus(test)
 dtm <- TermDocumentMatrix(my_df.corpus)
@@ -119,10 +171,78 @@ d <- data.frame(word = names(v),freq=v)
 @
 
 
-<<>>=
+
+<<wordcloudplot, fig.show='hold', echo=TRUE, eval=FALSE>>=
 # figPath = system.file("Assets/bomb.png",package = "wordcloud2")
-wordcloud2(d, figPath = "Assets/world.png", size = 1.5,color = "skyblue")
+wordcloud2(d, figPath = "Assets/world.png", size = 1.5,color = "random-light")
+widgetThumbnail(p = liam, thumbName = "plot", height = 862, width = 1509)
 @
+
+
+<<Count group attack occurences and plot, eval=TRUE, echo=TRUE>>=
+my_df.number.of.groups <- count(my_df, 'gname')
+my_df.number.of.groups <- my_df.number.of.groups[order(my_df.number.of.groups$freq, decreasing = T),]
+my_df.group.barplot<-ggplot(data=my_df.number.of.groups[2:11,], aes(x=gname, y=freq)) + geom_bar(stat="identity")
+my_df.group.barplot
+@
+
+<<AllGroup Known and Unknown Dataset creation>>=
+
+my_df.AllGroups <- subset(my_df, select=c("gname", "iyear", "imonth", "iday", "region_txt", "nkill", "attacktype1_txt", "success", "weapsubtype1_txt"))
+
+my_df.AllGroups$gname <- fct_lump(my_df.AllGroups$gname, n = 30)
+
+my_df.AllGroups <- my_df.AllGroups[!(is.na(my_df.AllGroups$nkill) | my_df.AllGroups$nkill ==""), ]
+my_df.AllGroups <- my_df.AllGroups[!(is.na(my_df.AllGroups$weapsubtype1_txt) | my_df.AllGroups$weapsubtype1_txt ==""), ]
+
+my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname =="Unknown"), ]
+
+my_df.AllGroups.Unknown <- my_df.AllGroups[(my_df.AllGroups$gname =="Unknown"), ]
+
+my_df.AllGroups.Known$gname <- factor(my_df.AllGroups.Known$gname)
+
+
+@
+
+
+<<>>=
+inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,
+p=.7,list=FALSE)
+group.data.training <- my_df.AllGroups.Known[inTrain,]
+group.data.testing <- my_df.AllGroups.Known[-inTrain,]
+@
+
+<<>>=
+set.seed(4205426)
+ntrees <- 100
+# create dataframe to store accuracies and corresponding number of trees
+df <- data.frame(NTrees=as.numeric(),
+Accuracy=as.numeric())
+# fit randomForest 10 times, and store the results
+# vary number of trees in every iteration
+
+
+for (i in 1:10){
+  RFModel <- randomForest(
+  group.data.training[,-1],
+  group.data.training[,1],
+  xtest=group.data.testing[,-1],
+  ytest=group.data.testing[,1],
+  ntree=ntrees,
+  proximity=TRUE
+  )
+  # Test the RF model for this run
+  preds <- levels(group.data.training[,1])[RFModel$test$predicted]
+  # compute accuracy
+  auc <- (sum(preds ==group.data.testing[,1])/nrow(group.data.testing))*100
+  df <- rbind(df, data.frame(NTrees=ntrees,Accuracy=auc))
+  ntrees <- ntrees + 100
+}# end for loop
+@
+
+
+
+
 
 
 \subsection{Another subtitle}
