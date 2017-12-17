@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+
 
 \section{Introduction}
 \label{sec:title}
@@ -39,11 +39,23 @@ library(plyr)
 
 
 library(shiny)
-library(trelliscope)
+library(trelliscopejs)
+library(htmlwidgets)
+library(grid)
+library(png)
 
 options(stringsAsFactors = FALSE)
 set.seed(4205426)
 @
+
+
+<<>>=
+img <- png::readPNG("Assets/watermark.png")
+watermark <- matrix(rgb(img[,,1],img[,,2],img[,,3], img[,,4] * 0.1), nrow=dim(img)[1]) #0.2 is alpha
+@
+
+
+
 
 <<Import dataset from csv file, eval=TRUE, echo=TRUE>>=
 # Import csv file from the Assets folder
@@ -54,17 +66,25 @@ my_df <- orig_df
 # attach(my_df)
 @
 
-<<Data Exploration, eval=TRUE,echo=FALSE>>=
+<<Data Exploration, eval=TRUE,echo=TRUE>>=
 # Start by seeinghow many rows and feature our dataset has by using dim
 dim(my_df)
 names(my_df)
 attach(my_df)
 @
 
-<<>>=
-qplot(my_df$iyear, geom="histogram", binwidth=0.5, main="Histogram of Recorded Terrorist Incidents", xlab="Year", ylab="Quantity")
-@
+<<Histogram of Recorded Terrorist Incidents, eval=TRUE, echo=TRUE>>=
+my_df.Histogram.Year <- ggplot(my_df, aes(x = iyear)) 
+my_df.Histogram.Year <- my_df.Histogram.Year + annotation_custom(xmin=-Inf, ymin=-Inf, xmax=Inf, ymax=Inf, rasterGrob(watermark))
+my_df.Histogram.Year <- my_df.Histogram.Year + geom_bar()
+my_df.Histogram.Year <- my_df.Histogram.Year + theme_igray()
+my_df.Histogram.Year <- my_df.Histogram.Year + scale_colour_tableau()
+my_df.Histogram.Year <- my_df.Histogram.Year + ggtitle("Histogram of Recorded Terrorist Incidents")
+my_df.Histogram.Year <- my_df.Histogram.Year + xlab("Year (Year)")
+my_df.Histogram.Year <- my_df.Histogram.Year + ylab("Quantity of Incidents (incidents)")
 
+my_df.Histogram.Year
+@
 
 
 <<Map of all known Terrorist attacks, eval=TRUE, echo=TRUE>>=
@@ -78,6 +98,7 @@ worldmap <- worldmap + scale_color_tableau()
 worldmap <- worldmap + theme_map()
 worldmap <- worldmap + theme(strip.background=element_blank())
 worldmap <- worldmap + theme(legend.position="none")
+worldmap <- worldmap + ggtitle("Map of All Terrorist Activity, 1970-2016")
 worldmap
 detach(my_df)
 @
@@ -195,8 +216,15 @@ my_df.AllGroups.Known$weaptype1 <- factor(my_df.AllGroups.Known$weaptype1)
 my_df.AllGroups.freq <- count(my_df$gname)
 my_df.AllGroups.freq <- my_df.AllGroups.freq[!(my_df.AllGroups.freq$x =="Unknown"), ]
 my_df.number.of.groups <- my_df.AllGroups.freq[order(my_df.AllGroups.freq$freq, decreasing = T),]
-my_df.group.barplot<-ggplot(data=my_df.number.of.groups[1:10,], aes(x=x, y=freq)) + geom_bar(stat="identity")+
-  coord_flip()
+my_df.group.barplot <- ggplot(data=my_df.number.of.groups[1:10,], aes(x=x, y=freq)) 
+my_df.group.barplot <- my_df.group.barplot + geom_bar(stat="identity")
+my_df.group.barplot <- my_df.group.barplot + coord_flip()
+my_df.group.barplot <- my_df.group.barplot + theme_igray()
+my_df.group.barplot <- my_df.group.barplot + scale_colour_tableau()
+my_df.group.barplot <- my_df.group.barplot + ggtitle("Global Terrorist Group Attacks")
+my_df.group.barplot <- my_df.group.barplot + xlab("Terorist Group (Name)")
+my_df.group.barplot <- my_df.group.barplot + ylab("Quantity of Incidents (incidents)")
+my_df.group.barplot <- my_df.group.barplot + annotation_custom(xmin=-Inf, ymin=-Inf, xmax=Inf, ymax=Inf, rasterGrob(watermark))
 my_df.group.barplot
 @
 
@@ -206,8 +234,15 @@ my_df.UK.AllGroups <- my_df[my_df$country==603,]
 my_df.UK.AllGroups.freq <- count(my_df.UK.AllGroups$gname)
 my_df.UK.AllGroups.freq <- my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x =="Unknown"), ]
 my_df.uk.number.of.groups <- my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq, decreasing = T),]
-my_df.uk.group.barplot<-ggplot(data=my_df.uk.number.of.groups[1:10,], aes(x=x, y=freq)) + geom_bar(stat="identity") +
-  coord_flip()
+my_df.uk.group.barplot<-ggplot(data=my_df.uk.number.of.groups[1:10,], aes(x=x, y=freq)) 
+my_df.uk.group.barplot <- my_df.uk.group.barplot + geom_bar(stat="identity") 
+my_df.uk.group.barplot <- my_df.uk.group.barplot + coord_flip()
+my_df.uk.group.barplot <- my_df.uk.group.barplot + theme_igray()
+my_df.uk.group.barplot <- my_df.uk.group.barplot + scale_colour_tableau()
+my_df.uk.group.barplot <- my_df.uk.group.barplot + ggtitle("United Kingdom Terrorist Group Attacks")
+my_df.uk.group.barplot <- my_df.uk.group.barplot + xlab("Terorist Group (Name)")
+my_df.uk.group.barplot <- my_df.uk.group.barplot + ylab("Quantity of Incidents (incidents)")
+my_df.uk.group.barplot <- my_df.uk.group.barplot + annotation_custom(xmin=-Inf, ymin=-Inf, xmax=Inf, ymax=Inf, rasterGrob(watermark))
 my_df.uk.group.barplot
 @
 
@@ -225,9 +260,13 @@ uk.v <- sort(rowSums(uk.m),decreasing=TRUE)
 uk.d <- data.frame(word = names(uk.v),freq=uk.v)
 @
 
-<<>>=
-wordcloud2(uk.d, figPath = "Assets/uk.png", size = 1.5,color = "random-light")
+<<Wordcloud of UK common incident Words, eval=FALSE, echo=TRUE, dev='png'>>=
+uk.wordcloud=wordcloud2(uk.d, figPath = "Assets/uk.png", size = 1.5,color = "random-light")
+saveWidget(uk.wordcloud,"uk.html",selfcontained = F)
+webshot("uk.html","uk.pdf", delay =100, vwidth = 800, vheight=800)
 @
+
+
 
 
 
@@ -288,14 +327,14 @@ rf.Groupid=randomForest(groupid~.,data=my_df.AllGroups.Known,subset=train)
 
 
 
-<<<echo=FALSE, eval=FALSE>>=
+<<echo=FALSE, eval=FALSE>>=
 attach(group.data.training)
 mymodel <- glm(groupid ~.,family=binomial,data=group.data.training[,-1])
 @
 
 
 
-<<<echo=FALSE, eval=FALSE>>=
+<<echo=FALSE, eval=FALSE>>=
 propos <- predict(mymodel,newdata=group.data.testing[,-1],type='response')
 # assing predictions to 0 or 1 based on the propbability
 predictions <- ifelse(propos > 0.5,1,0)
