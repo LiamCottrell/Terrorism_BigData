@@ -1,8 +1,16 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
 \graphicspath{ {Assets/} }
 \begin{document}
+
 
 \begin{titlepage}
     \begin{center}
@@ -15,7 +23,7 @@
         
         \vspace{1.5cm}
         
-        \textbf{Liam Cottrell}
+        \textbf{Liam Cottrell - 1302859}
         
         \vfill
         
@@ -23,58 +31,84 @@
         \vspace{0.8cm}
         
         \includegraphics[width=1\textwidth]{coverImage}
-        
+        \vspace{0.4cm}
+        {\scriptsize Wordcloud Generated from most frequently used words when reporting                 Terrorism}\\
+        \vspace{0.4cm}
         CM3111 - Full Time: Big Data Analytics\\
         Robert Gordon University\\
-        December 2017
+        \today
         
     \end{center}
 \end{titlepage}
 
+
+\tableofcontents
+\pagebreak
+
+
 \section{Introduction}
-\label{sec:title}
+\label{sec:Introduction}
 
+  \subsection{Subtitle}
+  \label{ssec:subtitle}
+  
+    For the last decade, Terrorist Incidents have been perceived to be on the rise. Every time you turn on the TV and watch the evening news, you are presented with a new headline from a new city that has been struck by a horrific event. What this Big Data module has taught me is that the art of analysing and visualising data is an act of telling a story to a viewer. My aim for this report, is to see if the stories that we are told, about the state of Global Terrorism, are as damning as we are led to believe.\par If this is the case, who are the main players? Do groups perform terrorism on a global scale? What does terrorism look like, and can we predict who does it?
+    
+    \vspace{1.5cm}
+  
+  \subsection{Citing Sources}
+  \label{ssec:Citing Source}
+    Throughout my report, I will make use of the following dataset which I acquired from \href{https://www.kaggle.com/START-UMD/gtd}{kaggle}.\par National Consortium for the Study of Terrorism and Responses to Terrorism (START). (2017). Global Terrorism Database [Data file]. Retrieved from \href{https://www.start.umd.edu/gtd}{The Global Terrorism Database's (GTD's) website}.
+    
+\pagebreak
 
-\subsection{Subtitle}
-\label{ssec:subtitle}
-
-Plain text.
-<<List of packages that will be utilised in my application, eval=TRUE, echo=TRUE>>=
-library(tidyverse)
-library(knitr)
-library(ggplot2)
-library(ggmap)
-library(maps)
-library(mapdata)
-library(maptools)
-library(ggthemes)
-library(ggalt)
-library(wordcloud)
-library(tm)
-library(RColorBrewer)
-library(SnowballC)
-library(wordcloud2)
-library(Matrix)
-library(tidytext)
-library(magrittr)
-library(webshot)
-
-# library(randomForest)
-library(ddR)
-library(randomForest.ddR)
-library(caret)
-library(forcats)
-library(plyr)
-
-library(shiny)
-library(trelliscopejs)
-library(htmlwidgets)
-library(grid)
-library(png)
-
-options(stringsAsFactors = FALSE)
-set.seed(4205426)
-@
+\section{Enviroment Setup}
+\label{sec:Enviroment Setup}
+  \subsection{Kniter Defaults}
+  \label{ssec:Kniter Defaults}
+    
+    <<Kniter suppress warning messages, eval=TRUE,echo=TRUE>>=
+    library(knitr)
+    knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+    @
+    
+  \subsection{Include Librarys}
+  \label{ssec:Include Librarys}
+    <<List of packages that will be utilised in my application, eval=TRUE, echo=TRUE>>=
+    library(tidyverse)
+    library(ggplot2)
+    library(ggmap)
+    library(maps)
+    library(mapdata)
+    library(maptools)
+    library(ggthemes)
+    library(ggalt)
+    library(wordcloud)
+    library(tm)
+    library(RColorBrewer)
+    library(SnowballC)
+    library(wordcloud2)
+    library(Matrix)
+    library(tidytext)
+    library(magrittr)
+    library(webshot)
+    
+    
+    library(ddR)
+    library(randomForest.ddR)
+    library(caret)
+    library(forcats)
+    library(plyr)
+    
+    library(shiny)
+    library(trelliscopejs)
+    library(htmlwidgets)
+    library(grid)
+    library(png)
+    
+    options(stringsAsFactors = FALSE)
+    set.seed(4205426)
+    @
 
 
 <<Watermark Creation, eval=TRUE, echo=FALSE>>=
@@ -326,9 +360,9 @@ group.data.testing.gname <- as.data.frame(group.data.testing[,1])
 
 
 
-<<eval=FALSE>>=
+<<Random Forest Amount of Trees, echo=TRUE, eval=FALSE>>=
 set.seed(4205426)
-ntrees <- 100
+ntrees <- 20
 nExecutor <- 12
 # create dataframe to store accuracies and corresponding number of trees
 trees.df <- data.frame(NTrees=as.numeric(),
@@ -345,37 +379,11 @@ importance=TRUE, na.action=na.omit,completeModel=TRUE, nExecutor = nExecutor, nt
   # compute accuracy
   auc <- (sum(preds ==group.data.testing[,1])/nrow(group.data.testing))*100
   trees.df <- rbind(trees.df, data.frame(NTrees=ntrees,Accuracy=auc))
-  ntrees <- ntrees + 100
+  ntrees <- ntrees + 20
 }# end for loop
 
 
 @
-
-<<eval=FALSE>>=
-train=sample(1:nrow(my_df.AllGroups.Known),300)
-rf.Groupid=randomForest(groupid~.,data=my_df.AllGroups.Known,subset=train)
-@
-
-
-
-<<echo=FALSE, eval=FALSE>>=
-attach(group.data.training)
-mymodel <- glm(groupid ~.,family=binomial,data=group.data.training[,-1])
-@
-
-
-
-<<echo=FALSE, eval=FALSE>>=
-propos <- predict(RFModel,newdata=group.data.testing[,-1],type='response')
-# assing predictions to 0 or 1 based on the propbability
-predictions <- ifelse(propos > 0.5,1,0)
-# compute test error
-test_err <- mean(predictions != group.data.testing$groupid)
-# accuracy is 1-test_err
-print(paste('Accuracy',1-test_err))
-@
-
-
 
 
 \subsection{Another subtitle}
