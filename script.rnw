@@ -32,11 +32,14 @@ library(webshot)
 library(randomForest)
 library(caret)
 library(forcats)
+library(plyr)
 
 
 library(shiny)
 library(trelliscope)
 library(trelliscopejs)
+
+options(stringsAsFactors = FALSE)
 @
 
 <<Import dataset from csv file, eval=TRUE, echo=TRUE>>=
@@ -78,7 +81,7 @@ buildCorpus <- function(someText){
   # For windows, it may not be an issue
   myCorpus <- tm_map(myCorpus,
                               content_transformer(function(x) iconv(x, to='UTF-8',
-                                    sub='byte')),mc.cores=1)
+                                    sub='byte')))
   myCorpus <- tm_map(myCorpus, content_transformer(tolower))
   # remove punctuation
   myCorpus <- tm_map(myCorpus, removePunctuation)
@@ -161,8 +164,9 @@ summarySplits = split(my_df.full_summary, g)
 
 @
 
-<<Construct DocumentTermMatrix from set1 then create dataframe with word frequency>>=
-test<-as.data.frame(summarySplits$set.1$summary)
+<<Construct DocumentTermMatrix from set1 then create dataframe with word frequency, eval=TRUE>>=
+# test<-as.data.frame(summarySplits$set.1$summary)
+test<-as.data.frame(my_df.full_summary$summary)
 my_df.corpus <- buildCorpus(test)
 dtm <- TermDocumentMatrix(my_df.corpus)
 m <- as.matrix(dtm)
@@ -179,21 +183,21 @@ widgetThumbnail(p = liam, thumbName = "plot", height = 862, width = 1509)
 @
 
 
-<<Count group attack occurences and plot, eval=TRUE, echo=TRUE>>=
-my_df.number.of.groups <- count(my_df, 'gname')
-my_df.number.of.groups <- my_df.number.of.groups[order(my_df.number.of.groups$freq, decreasing = T),]
-my_df.group.barplot<-ggplot(data=my_df.number.of.groups[2:11,], aes(x=gname, y=freq)) + geom_bar(stat="identity")
-my_df.group.barplot
-@
-
 <<AllGroup Known and Unknown Dataset creation>>=
 
-my_df.AllGroups <- subset(my_df, select=c("gname", "iyear", "imonth", "iday", "region_txt", "nkill", "attacktype1_txt", "success", "weapsubtype1_txt"))
+my_df.AllGroups <- subset(my_df, select=c("gname", "region_txt", "nkill", "attacktype1_txt", "success", "weapsubtype1_txt"))
+
+my_df.AllGroups$gname <- factor(my_df.AllGroups$gname)
+
 
 my_df.AllGroups$gname <- fct_lump(my_df.AllGroups$gname, n = 30)
+my_df.AllGroups$weapsubtype1_txt <- str_replace_all(my_df.AllGroups$weapsubtype1_txt, "[^[:alnum:]]", " ")
 
-my_df.AllGroups <- my_df.AllGroups[!(is.na(my_df.AllGroups$nkill) | my_df.AllGroups$nkill ==""), ]
-my_df.AllGroups <- my_df.AllGroups[!(is.na(my_df.AllGroups$weapsubtype1_txt) | my_df.AllGroups$weapsubtype1_txt ==""), ]
+my_df.AllGroups$attacktype1_txt <- str_replace_all(my_df.AllGroups$attacktype1_txt, "[^[:alnum:]]", " ")
+
+my_df.AllGroups$gname <- str_replace_all(my_df.AllGroups$gname, "[^[:alnum:]]", " ")
+
+my_df.AllGroups=na.omit(my_df.AllGroups)
 
 my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname =="Unknown"), ]
 
@@ -204,9 +208,27 @@ my_df.AllGroups.Known$gname <- factor(my_df.AllGroups.Known$gname)
 
 @
 
+<<Count group attack occurences and plot, eval=TRUE, echo=TRUE>>=
+my_df.AllGroups.freq <- count(my_df.AllGroups.Known$gname)
+# my_df.number.of.groups <- as.matrix(levels(my_df$gname))
+my_df.number.of.groups <- my_df.AllGroups.freq[order(my_df.AllGroups.freq$freq, decreasing = T),]
+my_df.group.barplot<-ggplot(data=my_df.number.of.groups[2:11,], aes(x=x, y=freq)) + geom_bar(stat="identity")
+my_df.group.barplot
+@
+
+
+<<Creates group ids from gname refrenced from frequency matrix, eval=TRUE>>=
+for (i in 1:which.max(my_df.AllGroups.freq$x)){
+  my_df.AllGroups.Known$groupid[my_df.AllGroups.Known$gname == my_df.AllGroups.freq$x[i]] <- i
+}
+my_df.AllGroups.Known$gname <- NULL
+my_df.AllGroups.Known$groupid <- as.numeric(my_df.AllGroups.Known$groupid)
+my_df.AllGroups.Known$groupid <- factor(my_df.AllGroups.Known$groupid)
+@
+
 
 <<>>=
-inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,
+inTrain <- createDataPartition(y=my_df.AllGroups.Known$groupid,
 p=.7,list=FALSE)
 group.data.training <- my_df.AllGroups.Known[inTrain,]
 group.data.testing <- my_df.AllGroups.Known[-inTrain,]
@@ -216,30 +238,28 @@ group.data.testing <- my_df.AllGroups.Known[-inTrain,]
 set.seed(4205426)
 ntrees <- 100
 # create dataframe to store accuracies and corresponding number of trees
-df <- data.frame(NTrees=as.numeric(),
+df_guff <- data.frame(NTrees=as.numeric(),
 Accuracy=as.numeric())
 # fit randomForest 10 times, and store the results
 # vary number of trees in every iteration
 
 
 for (i in 1:10){
-  RFModel <- randomForest(
-  group.data.training[,-1],
-  group.data.training[,1],
-  xtest=group.data.testing[,-1],
-  ytest=group.data.testing[,1],
-  ntree=ntrees,
-  proximity=TRUE
-  )
+  RFModel <- randomForest(group.data.training[,-6], group.data.training[,6], xtest=group.data.testing[,-6], ytest=group.data.testing[,6], ntree=ntrees, proximity=TRUE, importance=TRUE, na.action = na.roughfix)
+  # Test the RF model for this run
+  preds <- levels(group.data.training[,6])[RFModel$test$predicted]
+  # compute accuracy
+  auc <- (sum(preds ==group.data.testing[,6])/nrow(group.data.testing))*100
+  df_guff <- rbind(df_guff, data.frame(NTrees=ntrees,Accuracy=auc))
+  ntrees <- ntrees + 100
   # Test the RF model for this run
   preds <- levels(group.data.training[,1])[RFModel$test$predicted]
   # compute accuracy
   auc <- (sum(preds ==group.data.testing[,1])/nrow(group.data.testing))*100
-  df <- rbind(df, data.frame(NTrees=ntrees,Accuracy=auc))
+  df_guff <- rbind(df_guff, data.frame(NTrees=ntrees,Accuracy=auc))
   ntrees <- ntrees + 100
 }# end for loop
 @
-
 
 
 
