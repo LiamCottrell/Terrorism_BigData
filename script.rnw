@@ -1,8 +1,35 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
-
+\usepackage{graphicx}
+\graphicspath{ {Assets/} }
 \begin{document}
 
+\begin{titlepage}
+    \begin{center}
+        \vspace*{1cm}
+        
+        \textbf{Analysing the Global Terrorism Database}
+        
+        \vspace{0.5cm}
+        Viewing Terrorism Globally and in the United Kingdom
+        
+        \vspace{1.5cm}
+        
+        \textbf{Liam Cottrell}
+        
+        \vfill
+        
+        
+        \vspace{0.8cm}
+        
+        \includegraphics[width=1\textwidth]{coverImage}
+        
+        CM3111 - Full Time: Big Data Analytics\\
+        Robert Gordon University\\
+        December 2017
+        
+    \end{center}
+\end{titlepage}
 
 \section{Introduction}
 \label{sec:title}
@@ -32,11 +59,12 @@ library(tidytext)
 library(magrittr)
 library(webshot)
 
-library(randomForest)
+# library(randomForest)
+library(ddR)
+library(randomForest.ddR)
 library(caret)
 library(forcats)
 library(plyr)
-
 
 library(shiny)
 library(trelliscopejs)
@@ -49,7 +77,7 @@ set.seed(4205426)
 @
 
 
-<<>>=
+<<Watermark Creation, eval=TRUE, echo=FALSE>>=
 img <- png::readPNG("Assets/watermark.png")
 watermark <- matrix(rgb(img[,,1],img[,,2],img[,,3], img[,,4] * 0.1), nrow=dim(img)[1]) #0.2 is alpha
 @
@@ -185,7 +213,7 @@ widgetThumbnail(p = liam, thumbName = "plot", height = 862, width = 1509)
 
 <<AllGroup Known and Unknown Dataset creation>>=
 
-my_df.AllGroups <- subset(my_df, select=c("gname", "region", "nkill", "attacktype1", "success", "weaptype1"))
+my_df.AllGroups <- subset(my_df, select=c("gname", "region", "nkill", "attacktype1", "success", "weaptype1", "iday", "iyear", "imonth", "targtype1"))
 
 my_df.AllGroups$gname <- factor(my_df.AllGroups$gname)
 
@@ -284,40 +312,43 @@ my_df.AllGroups.Known <- my_df.AllGroups.Known %>%
 
 
 <<eval=TRUE>>=
-inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,
-p=.7,list=FALSE)
+inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,p=.7,list=FALSE)
 group.data.training <- my_df.AllGroups.Known[inTrain,]
 # group.data.training.test <- group.data.training[1:100,]
 group.data.testing <- my_df.AllGroups.Known[-inTrain,]
+
+
+group.data.testing.gname <- as.data.frame(group.data.testing[,1])
+
 @
+
+
 
 
 
 <<eval=FALSE>>=
 set.seed(4205426)
 ntrees <- 100
+nExecutor <- 12
 # create dataframe to store accuracies and corresponding number of trees
-df_guff <- data.frame(NTrees=as.numeric(),
+trees.df <- data.frame(NTrees=as.numeric(),
 Accuracy=as.numeric())
 # fit randomForest 10 times, and store the results
 # vary number of trees in every iteration
 
 
 for (i in 1:10){
-  RFModel <- randomForest(group.data.training[1:100,-1], group.data.training[1:100,1], xtest=group.data.testing[,-1], ytest=group.data.testing[,1], ntree=ntrees, proximity=TRUE, importance=TRUE)
+  RFModel <- drandomForest(gname ~ ., data=group.data.training, mtry=4,
+importance=TRUE, na.action=na.omit,completeModel=TRUE, nExecutor = nExecutor, ntree = ntrees, xtest=group.data.testing[,-1], ytest=as.data.frame(group.data.testing[,1]))
   # Test the RF model for this run
   preds <- levels(group.data.training[,1])[RFModel$test$predicted]
   # compute accuracy
   auc <- (sum(preds ==group.data.testing[,1])/nrow(group.data.testing))*100
-  df_guff <- rbind(df_guff, data.frame(NTrees=ntrees,Accuracy=auc))
-  ntrees <- ntrees + 100
-  # Test the RF model for this run
-  preds <- levels(group.data.training[,1])[RFModel$test$predicted]
-  # compute accuracy
-  auc <- (sum(preds ==group.data.testing[,1])/nrow(group.data.testing))*100
-  df_guff <- rbind(df_guff, data.frame(NTrees=ntrees,Accuracy=auc))
+  trees.df <- rbind(trees.df, data.frame(NTrees=ntrees,Accuracy=auc))
   ntrees <- ntrees + 100
 }# end for loop
+
+
 @
 
 <<eval=FALSE>>=
@@ -335,7 +366,7 @@ mymodel <- glm(groupid ~.,family=binomial,data=group.data.training[,-1])
 
 
 <<echo=FALSE, eval=FALSE>>=
-propos <- predict(mymodel,newdata=group.data.testing[,-1],type='response')
+propos <- predict(RFModel,newdata=group.data.testing[,-1],type='response')
 # assing predictions to 0 or 1 based on the propbability
 predictions <- ifelse(propos > 0.5,1,0)
 # compute test error
