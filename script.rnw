@@ -3,6 +3,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{subcaption}
+
+
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
@@ -35,7 +38,7 @@
         \vspace{0.4cm}
         {\scriptsize Wordcloud Generated from most frequently used words when Reports summarize Terrorism}\\
         \vspace{0.4cm}
-        CM3111 - Full Time: Big Data Analytic\\
+        CM3111 - Full Time: Big Data Analytics\\
         Robert Gordon University\\
         \today
         
@@ -52,8 +55,8 @@
 \section{Introduction}
 \label{sec:Introduction}
 
-  \subsection{Subtitle}
-  \label{ssec:subtitle}
+  \subsection{Terrorism}
+  \label{ssec:Terrorism}
   
     For the last decade, Terrorist Incidents have been perceived to be on the rise. Every time you turn on the TV and watch the evening news, you are presented with a new headline from a new city that has been struck by a horrific event. What this Big Data module has taught me is that the art of analyzing and visualizing data is an act of telling a story to a viewer. My aim for this report, is to see if the stories that we are told, about the state of Global Terrorism, are as damning as we are led to believe.\par If this is the case, who are the main players? Do groups perform terrorism on a global scale? What does terrorism look like, and can we predict who does it?
     
@@ -112,12 +115,13 @@
       library(htmlwidgets)
       library(grid)
       library(png)
+      library(xtable)
     @
     
   \pagebreak
   
   \subsection{Create Seed}
-  \label{ssec:Create Seed}
+  \label{ssec:CreateSeed}
   
     We will set the seed of the script to a specific number so that our results can be repeatable and consistent.
     
@@ -125,6 +129,12 @@
       set.seed(4205426)
     @
     
+  \subsection{Set Core Count}
+  \label{ssec:CoreCount}
+    As part of my script, I've used parallel processing and used the R Package drandomForest. This package is similar in functionality to the standard ranomForest package however, it works in a distributed fashion. It will create many instances of R to perform calculations in parallel, speeding up the completion time of generating my Random Forest, later in this document. If you want to learn more about the drandomForest Package, read \href{https://www.rdocumentation.org/packages/randomForest.ddR/versions/0.1.1/topics/drandomForest}{here}.\par I'm running my Script off a Server I have rented which has a Xeon E5-1650 v4 6 core processor with 12 logical processors. You will need to change the following value to the amount of logical processors your computer has, which you can find out online.\par We will set the following nExecutor parameter to 12, but your setup may be different.
+    <<Set Core quanity of host machine to perfom parallel processing, echo=TRUE, eval=TRUE>>=
+      nExecutor <- 12
+    @
     
 
     <<Watermark Creation, eval=TRUE, echo=FALSE>>=
@@ -135,7 +145,7 @@
 
 
   \subsection{Import Dataset}
-  \label{ssec:Import Dataset}
+  \label{ssec:ImportDataset}
     We will import our csv file in the following few lines of code:
     
     \small
@@ -155,10 +165,10 @@
     
     
 \section{Data Exploration}
-\label{sec:Data Exploration}
+\label{sec:DataExploration}
 
   \subsection{Size of GTD}
-  \label{ssec:Size of GTD}
+  \label{ssec:SizeGTD}
   
     Start by seeing how many rows and feature our dataset has by using the dim function in R to see the dataframes dimensions.
     
@@ -173,11 +183,14 @@
     @
     \normalsize
     
+    \clearpage
+    \pagebreak
+    
 \section{Data Analysis}
 \label{sec:Data Analysis}
 
   \subsection{Spread of Incidents over the years}
-  \label{ssec:Spread of Incidents over the years}
+  \label{ssec:SpreadIncidentsYears}
   
     \subsubsection{What we are looking for}
     
@@ -227,25 +240,23 @@
         \label{fig:HistYear}
       \end{figure}
       
-      \pagebreak
+      \clearpage
       
-      As we can see from \ref{fig:HistYear}, there has been a dramatic increase of reported terrorist incidents from 2013 onward. Looking at the data, it shows evidence it shows terrorist incidents having a decline as the new millennium started, then dramatically increasing over the next decade.\par This information is interesting and we will continue to visualise incidents from this set
+      
+      As we can see from \ref{fig:HistYear}, there has been a dramatic increase of reported terrorist incidents from 2013 onward. Looking at the data, it shows evidence it shows terrorist incidents having a decline as the new millennium started, then dramatically increasing over the next decade.\par This information is interesting and we will continue to visualize incidents from this set
     
-      \pagebreak
 
   \subsection{Map of All Terrorist attacks}
-  \label{ssec:Map of all Terrorist attacks}
+  \label{ssec:MapTerroristAttacks}
   
-    \subsubsection{Visualising locational data}
+    \subsubsection{Visualizing location data}
     
-      Our Dataset has longitute and latitude values for some incidents, so it would be nice to visualise this information on a map. Tthis will allow us to see if there are any large areas of concentrated incidents in the world, and allow us to explore certain reagions or countries further to see what sort of terrorist activity is going on. 
+      Our Dataset has longitude and latitude values for some incidents, so it would be nice to visualize this information on a map. This will allow us to see if there are any large areas of concentrated incidents in the world, and allow us to explore certain regions or countries further to see what sort of terrorist activity is going on. 
       
     \subsubsection{Using R to Create our Map}
       
-      We will, once again, use ggplot2 to plot our map. We will start by getting vector information from the package mapdata that we can map the coordinates of to a ggplot geom polygon. This will giveus a scaleable image of the world, but due to the way the globe is distorted, we will have to compensate for its curvature by multiplying the map positions by 1.3. Once we have done this, we can then plot points on the map where every terrorist incident occurs, and after theme information, we should get the below results.
-      
-      \pagebreak
-      
+      We will, once again, use ggplot2 to plot our map. We will start by getting vector information from the package mapdata that we can map the coordinates of to a ggplot geom polygon. This will gives us a scale-able image of the world, but due to the way the globe is distorted, we will have to compensate for its curvature by multiplying the map positions by 1.3. Once we have done this, we can then plot points on the map where every terrorist incident occurs, and after theme information, we should get the below results.
+
       \small
       <<Map of all Terrorist attacks, eval=TRUE, echo=TRUE>>=
         worldmapcords <- map_data("world")
@@ -293,7 +304,11 @@
         \label{fig:worldmap}
       \end{figure}
       
+      \clearpage
+      
       \pagebreak
+      
+      You can see in \ref{fig:worldmap}, there is a surprisingly high concentration of terrorist attacks that happen in the United Kingdom. We shall explore the terrorist groups that have committed attacks in the United Kingdom as a result of these findings.
     
 
     
@@ -301,21 +316,45 @@
         detach(my_df)
       @
     
-  \subsection{Map of All Terrorist attacks}
-  \label{ssec:Map of all Terrorist attacks}
+  \subsection{Pie-chart of Frequency of Global Terrorist attack types}
+  \label{ssec:PieChartAttackType}
   
-    \subsubsection{Visualising locational data}
-
-      <<Create AttackType Dataframe and calculate Frequency and Percentage, eval=TRUE, echo=TRUE>>=
+    \subsubsection{Introduction}
+      We will take a small selection of data from our main dataset, to create a new dataframe. We wish to find out the frequency of diffrent Attack Types to see if there are particular Attack Types that are more persistant.
+  
+    \subsubsection{Sub-setting Attack data}
+      
+      We will use the count function that comes with the plyr Package to get a quick frequency dataframe of all the attack types.\par From there, we will calculate the sum of the total quantity of attack types that we will use to calculate percentage later. 
+    
+      <<Create AttackType Dataframe, eval=TRUE, echo=TRUE>>=
         my_df.countattacktype <- count(my_df$attacktype1_txt)
         my_df.countattacktype.percent <- sum(my_df.countattacktype$freq)
+      @
+      
+      
+    \subsubsection{Calculate Attack Type Percentage and Sort}
+      We will now append a new column called percent to our dataframe that will contain the percentage of specific attack type in proportion to its peers. To  do this, will will need to create a loop to access the specific index of the record we wish to change and the index of percent we wish to create. From there its a case of calculating the percentage with the rest of the information that we aquired before.   
+      \small
+      <<Calculate Frequency and Percentage of AttackTypes, eval=TRUE, echo=TRUE>>=
+        
         for(i in 1:nrow(my_df.countattacktype)){
-          my_df.countattacktype$percent[i] <- (my_df.countattacktype$freq[i]/my_df.countattacktype.percent)*100
+          my_df.countattacktype$percent[i] <- (my_df.countattacktype$freq[i]/
+                                                 my_df.countattacktype.percent)*100
         }
         my_df.countattacktype <- my_df.countattacktype[order(my_df.countattacktype$freq,
                                                                   decreasing = T),]
       @
-      
+      \normalsize
+      Now we have populated the percentage feild, we can sort our dataframe from highest value of freqency to lowest which will make the data nice to read when we create a table with it next.
+    \subsubsection{Attack Type Table}
+      We will make use of the xtable package, that takes in our dataframe as a paramiter, and outputs it to my document in \LaTeX  formatting. 
+      <<AttackType Dataframe to table, eval=TRUE, echo=FALSE, results="asis">>=
+       print(xtable(my_df.countattacktype,
+                    caption="Frequency and Percentage of Attack Types"))
+      @
+      We can see from this table that Bombing/Explosion seems to have the highest percentage of frequency vs the alternative Attack Types.
+    \subsubsection{Plot table to Pie Chart}
+      We can take the information in our dataframe and create a Pie Chart to better visualise it. We can make use of ggplot2 to createa an initial barplot, then convert it into a circular version, aka a pie chart. 
       <<BarChart of all Terrorist attack types, eval=TRUE, echo=TRUE>>=
       my_df.countattacktype.bp <- ggplot(my_df.countattacktype,
                                          aes(x="",
@@ -335,119 +374,220 @@
         xlab("")
       my_df.countattacktype.bp <- my_df.countattacktype.bp +
         ylab("")
-      
       @
-      
+      Once we have our Bar chart created, we can now go about converting it to a Piechart.
       
       <<Convert to Piechart of all Terrorist attack types, eval=TRUE, echo=TRUE>>=
-      my_df.countattacktype.pie <- my_df.countattacktype.bp +
-        coord_polar("y",
-                    start=0)
+        my_df.countattacktype.pie <- my_df.countattacktype.bp +
+          coord_polar("y",
+                      start=0)
       @
       
       
+      \pagebreak
+      
+      \begin{figure}
+        <<Plot Piechart of all Terrorist attack types, eval=TRUE, echo=FALSE>>=
+          my_df.countattacktype.pie
+        @
+        \begin{center}
+          \caption{Pie Chart: Percentage distribution of Attack type frequency information, using ggplot2}
+        \end{center}
+        \label{fig:AttackPie}
+      \end{figure}
+      
+      \clearpage
+      The piechart shows the same information that our table did from before. I find, however, it better visualises the suprising proportion of terrorist attacks that are Bombing/Explosion conducted. The proportion of the next closest type of attack,Armed Assault, is significantly smaller in comaprison.
+      
+      \pagebreak
       
       
-      <<Plot Piechart of all Terrorist attack types, eval=TRUE, echo=FALSE>>=
-      my_df.countattacktype.pie
+      
+  \subsection{Corpus's, DocumentTextMatrix's and Wordcloud's}
+  \label{ssec:CorpusDTMWordcloud}
+  
+    \subsubsection{Section Introduction}
+      Another form of visualising data for analysis is to use the wordcloud, or wordcloud2 packages. These packages both generate an image of multiple words, their size dictating the higher the frequency of use. The GTD supplies us with a feature called Summary which contains summary information about specific terrorist incidents. What would be interesting to see is the most commonly used words in theses passages, and see if the most frequent words used in summaries globaly differs from a specific country, such as the United Kingdom.
+  
+    \subsubsection{Copus Creation Function}
+      To be able to create a Document Text Matrix, we must be able to collate a collection of text documnets. A Corpus, or VCorpus, allows us to be able to do just that. We will make use of the very powerful tm, or Text Mining, Package in R that can help us in the creation of Corpus's and then later, Document Text Matrix's.\par We will create a function that will allow us to reduce the reppition of code, as we plan to make more than one wordcloud. The purpose of our buildCopus function is to take in a list of summary records, then convert them to a Corpus to be steralized. We can steralize the docments for symbols, via the use of regual expressions, and stop words such as, as and the that, etc... We will alose make sure to remove white space and numbers from our Corpus's as to only retain words of particular intrest, such as verbs and nouns.
+
+      <<Corpus Building Function Used throughout program, eval=TRUE, echo=TRUE>>=
+        buildCorpus <- function(someText){
+          # build a corpus, and specify the source to be character vectors
+          myCorpus <- Corpus(VectorSource(someText))
+          # I had to add this line to make the code work
+          # For windows, it may not be an issue
+          myCorpus <- tm_map(myCorpus,
+                                      content_transformer(function(x) iconv(x,
+                                                                            to='UTF-8',
+                                                                            sub='byte')))
+          myCorpus <- tm_map(myCorpus,
+                             content_transformer(tolower))
+          # remove punctuation
+          myCorpus <- tm_map(myCorpus,
+                             removePunctuation)
+          # remove numbers
+          myCorpus <- tm_map(myCorpus,
+                             removeNumbers)
+          # remove URLs
+          removeURL <- function(x){
+            sub("http[[:alnum:]]*", "", x)
+          }
+          myCorpus <- tm_map(myCorpus,
+                             content_transformer(removeURL))
+          myCorpus <- tm_map(myCorpus,
+                             function(x) removeWords(x,
+                                                     stopwords("english")))
+          myCorpus <- tm_map(myCorpus,
+                             stripWhitespace)
+          # Return the text corpus
+          return(myCorpus)
+        }
+      
+      @
+      
+    \subsubsection{Create Summary Dataframe}
+      We will now create a dataframe that will only contain full and complete summary information. This dataframe will be used to create a global wordcloud.
+      <<Remove Summary Information that is null from set, eval=TRUE, echo=TRUE>>=
+        my_df.full_summary <- my_df[!(is.na(my_df$summary) | my_df$summary==""), ]
       @
 
 
+      <<Summary splitting, eval=TRUE, echo=FALSE>>=
+        #use this function if you do not have enough ram to be able to covert all the information into a matrix
+        spec = c(set.1 = .1,
+                 set.2 = .1,
+                 set.3 = .1,
+                 set.4 = .1,
+                 set.5 = .1,
+                 set.6 = .1,
+                 set.7 = .1,
+                 set.8 = .1,
+                 set.9 = .1,
+                 set.10 = .1)
+        
+        g = sample(
+          cut(
+            seq(nrow(my_df.full_summary)),
+            nrow(my_df.full_summary)*cumsum(c(0,spec)),
+            labels = names(spec)
+            )
+          )
+        
+        summarySplits = split(my_df.full_summary, g)
+      @
+      
+    \subsubsection{DocumentTextMatrix Creation}
+      We will now create a Document Text Matrix by initially building our corpus, using our buildCorpus fucntion. From there we can then create our Document Text Matrix objects with the end result being a dataframe with words and their frequency of use.
 
+      <<Construct DocumentTermMatrix then create dataframe with word frequency, eval=FALSE>>=
+        my_df.AllSummary<-as.data.frame(my_df.full_summary$summary)
+        my_df.AllSummary.corpus <- buildCorpus(my_df.AllSummary)
+        AllSummary.dtm <- TermDocumentMatrix(my_df.AllSummary.corpus)
+        AllSummary.m <- as.matrix(AllSummary.dtm)
+        AllSummary.v <- sort(rowSums(AllSummary.m),
+                             decreasing=TRUE)
+        AllSummary.d <- data.frame(word = names(AllSummary.v),
+                                   freq=AllSummary.v)
+      @
+      
+      <<If computer doesnt have enough ram, run this code block, eval=FALSE, echo=FALSE>>=
+        #This codeblock only uses a 10% sample of the data, if you are struggling to run the codeblock above! This method will require about 5GB of RAM
+        my_df.AllSummary<-as.data.frame(summarySplits$set.1$summary)
+        my_df.AllSummary.corpus <- buildCorpus(my_df.AllSummary)
+        AllSummary.dtm <- TermDocumentMatrix(my_df.AllSummary.corpus)
+        AllSummary.m <- as.matrix(AllSummary.dtm)
+        AllSummary.v <- sort(rowSums(AllSummary.m),
+                             decreasing=TRUE)
+        AllSummary.d <- data.frame(word = names(AllSummary.v),
+                                   freq=AllSummary.v)
+      @
+    \subsubsection{Global Wordcloud Creation}
+      Once we have aquired our Word Frequency Matrix, we can then make use of wordcloud2 to show an amazing figure of most commanly used words. Wordcloud2 is more special than wordcloud as it allows us to specify a figPath, that we can map the shape of our output to be like. In this example, as we are showing words from Summaries from all countries globaly, my figPath shall make our output look like the globe!
+      <<Global wordcloudplot, fig.show='hold', echo=TRUE, eval=FALSE>>=
+        wordcloud2(AllSummary.d,
+                   figPath = "Assets/world.png",
+                   size = 1.5,
+                   color = "random-light")
+      @
+      
+      \begin{figure}
+        \centering
+        \includegraphics[width=1\textwidth]{coverImage}
+          \caption{Map of the world, with most frequently used words, used to describe terrorist Incidents.}
+          \label{fig:GlobalWordcloud}
+      \end{figure}
+      
+      \clearpage
+      
+      \pagebreak
+      
+    \subsubsection{UK Subset Data}
+      Now we will analyse the data of UK Terror Incidents. To do this, we will need to create a dataframe which only contiants incidents that have occured in the United Kingdom. From refering to the GTD refrence's on their website, the country code for the United Kingdom is 603. We will now create a dataset that only contains incidents from the United Kingdom.
+      <<Create UK only Dataset, eval=TRUE, echo=TRUE>>=
+        my_df.UK.AllGroups <- my_df[my_df$country==603,]
+      @
+      
+    \subsubsection{UK - Create Summary Dataframe}
+      Now we have this data singled out, we can go ahead and start to create a dataframe that only has UK Summary information. We will once again need to make sure thatn that this data has no null values and  is a full dataframe with Summary information.\par This time, instead of comparing records and manually replacing them with null entries, we can make use of the na.omit function that omits null entries in a dataframe. 
+      <<Create a subset of UK summary informaction, echo=TRUE, eval=FALSE>>=
+        my_df.UK.AllGroups.Summary <- my_df.UK.AllGroups$summary
+        my_df.UK.AllGroups.Summary = na.omit(my_df.UK.AllGroups.Summary)
+      @
+      
+    \subsubsection{UK - DocumentTextMatrix Creation}
+      We can now opnce again build our Document Text Matrix using the same format bellow. The only diffrence between this code and before is we wish to save our data in new variable names, specific to the United Kingdom.
+      <<Build Corpus and DTM for UK Summary Information, echo=TRUE, eval=FALSE>>=
+        uk.corpus <- buildCorpus(my_df.UK.AllGroups.Summary$summary)
+        uk.dtm <- TermDocumentMatrix(uk.corpus)
+        uk.m <- as.matrix(uk.dtm)
+        uk.v <- sort(rowSums(uk.m),
+                     decreasing=TRUE)
+        uk.d <- data.frame(word = names(uk.v),
+                           freq=uk.v)
+      @
+      
+    \subsubsection{UK Wordcloud Creation}
+      Finnaly, we can create our wordcloud. This time, I've decided to map our wordcloud to a figPath of the United Kingdom. 
+      <<Wordcloud of UK common incident Words, eval=FALSE, echo=TRUE, dev='png'>>=
+      wordcloud2(uk.d,
+                 figPath = "Assets/uk.png",
+                 size = 1.5,
+                 color = "random-light")
+      @
+      
+      \begin{figure}
+        \centering
+        \includegraphics[width=1\textwidth]{ukSummaryPlot}
+          \caption{Map of the world, with most frequently used words, used to describe terrorist Incidents In the UK.}
+          \label{fig:UKWordcloud}
+      \end{figure}
+      
+      \clearpage
+      
+      \subsubsection{Similarites and Diffrences between Wordclouds}
+      
+        \begin{figure}
+          \centering
+          \begin{subfigure}[b]{0.45\textwidth}
+              \includegraphics[width=\textwidth]{coverImage}
+              \caption{Global Wordcloud}
+              \label{fig:compareGlobal}
+          \end{subfigure}
+          \begin{subfigure}[b]{0.45\textwidth}
+              \includegraphics[width=\textwidth]{ukSummaryPlot}
+              \caption{UK Wordcloud}
+              \label{fig:compareUK}
+          \end{subfigure}
+        \end{figure}
+        
+        
+      
+      
 
-
-<<Corpus Building Function Used trhoughout program, eval=TRUE>>=
-  buildCorpus <- function(someText){
-    # build a corpus, and specify the source to be character vectors
-    myCorpus <- Corpus(VectorSource(someText))
-    # I had to add this line to make the code work
-    # For windows, it may not be an issue
-    myCorpus <- tm_map(myCorpus,
-                                content_transformer(function(x) iconv(x, to='UTF-8',
-                                      sub='byte')))
-    myCorpus <- tm_map(myCorpus,
-                       content_transformer(tolower))
-    # remove punctuation
-    myCorpus <- tm_map(myCorpus,
-                       removePunctuation)
-    # remove numbers
-    myCorpus <- tm_map(myCorpus,
-                       removeNumbers)
-    # remove URLs
-    removeURL <- function(x){
-      sub("http[[:alnum:]]*", "", x)
-    }
-    myCorpus <- tm_map(myCorpus,
-                       content_transformer(removeURL))
-    myCorpus <- tm_map(myCorpus,
-                       function(x) removeWords(x,
-                                               stopwords("english")))
-    myCorpus <- tm_map(myCorpus,
-                       stripWhitespace)
-    # Return the text corpus
-    return(myCorpus)
-  }
-
-@
-
-
-
-
-<<Remove Summary Information that is null from set, eval=TRUE>>=
-  my_df.full_summary <- my_df[!(is.na(my_df$summary) | my_df$summary==""), ]
-@
-
-
-<<Summary splitting, eval=FALSE>>=
-  spec = c(set.1 = .1,
-           set.2 = .1,
-           set.3 = .1,
-           set.4 = .1,
-           set.5 = .1,
-           set.6 = .1,
-           set.7 = .1,
-           set.8 = .1,
-           set.9 = .1,
-           set.10 = .1)
-  
-  g = sample(
-    cut(
-      seq(nrow(my_df.full_summary)),
-      nrow(my_df.full_summary)*cumsum(c(0,spec)),
-      labels = names(spec)
-      )
-    )
-  
-  summarySplits = split(my_df.full_summary, g)
-@
-
-<<Construct DocumentTermMatrix from set1 then create dataframe with word frequency, eval=FALSE>>=
-  # test<-as.data.frame(summarySplits$set.1$summary)
-  my_df.AllSummary<-as.data.frame(my_df.full_summary$summary)
-  my_df.AllSummary.corpus <- buildCorpus(my_df.AllSummary)
-  AllSummary.dtm <- TermDocumentMatrix(my_df.AllSummary.corpus)
-  AllSummary.m <- as.matrix(AllSummary.dtm)
-  AllSummary.v <- sort(rowSums(AllSummary.m),
-                       decreasing=TRUE)
-  AllSummary.d <- data.frame(word = names(AllSummary.v),
-                             freq=AllSummary.v)
-@
-
-
-
-<<wordcloudplot, fig.show='hold', echo=TRUE, eval=FALSE>>=
-  wordcloud2(d,
-             figPath = "Assets/world.png",
-             size = 1.5,
-             color = "random-light")
-  widgetThumbnail(p = liam,
-                  thumbName = "plot",
-                  height = 862,
-                  width = 1509)
-@
-
-
-<<AllGroup Known and Unknown Dataset creation>>=
+\small
+<<AllGroup Known and Unknown Dataset creation, echo=TRUE, eval=FALSE>>=
   my_df.AllGroups <- subset(my_df,
                             select=c(
                               "gname",
@@ -494,8 +634,8 @@
   my_df.AllGroups.Unknown$weaptype1 <- factor(my_df.AllGroups.Unknown$weaptype1)
 
 @
-
-<<Count group attack occurences and plot, eval=TRUE, echo=TRUE>>=
+\normalsize
+<<Count group attack occurences and plot, echo=TRUE, eval=FALSE>>=
   my_df.AllGroups.freq <- count(my_df$gname)
   my_df.AllGroups.freq <- my_df.AllGroups.freq[!(my_df.AllGroups.freq$x =="Unknown"), ]
   my_df.number.of.groups <- my_df.AllGroups.freq[order(my_df.AllGroups.freq$freq,
@@ -533,8 +673,8 @@
 @
 
 
-<<Count UK group attack occurences and plot, eval=TRUE, echo=TRUE>>=
-  my_df.UK.AllGroups <- my_df[my_df$country==603,]
+<<Count UK group attack occurences and plot, echo=TRUE, eval=FALSE>>=
+  
   my_df.UK.AllGroups.freq <- count(my_df.UK.AllGroups$gname)
   my_df.UK.AllGroups.freq <- my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x =="Unknown"), ]
   my_df.uk.number.of.groups <- my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq,
@@ -564,36 +704,8 @@
 @
 
 
-<<>>=
-  my_df.UK.AllGroups.SummaryAT <- subset(my_df.UK.AllGroups,
-                                         select=c(
-                                           "summary",
-                                                  "attacktype1"
-                                           )
-                                         )
-  my_df.UK.AllGroups.SummaryAT = na.omit(my_df.UK.AllGroups.SummaryAT)
-@
 
-<<>>=
-  uk.corpus <- buildCorpus(my_df.UK.AllGroups.SummaryAT$summary)
-  uk.dtm <- TermDocumentMatrix(uk.corpus)
-  uk.m <- as.matrix(uk.dtm)
-  uk.v <- sort(rowSums(uk.m),
-               decreasing=TRUE)
-  uk.d <- data.frame(word = names(uk.v),
-                     freq=uk.v)
-@
-
-<<Wordcloud of UK common incident Words, eval=FALSE, echo=TRUE, dev='png'>>=
-  uk.wordcloud=wordcloud2(uk.d,
-                          figPath = "Assets/uk.png",
-                          size = 1.5,
-                          color = "random-light")
-@
-
-
-
-<<echo=TRUE, eval=TRUE>>=
+<<Create Training and Testing Set of Group data, , echo=TRUE, eval=FALSE>>=
   inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,
                                  p=.7,
                                  list=FALSE)
@@ -601,9 +713,6 @@
   group.data.testing <- my_df.AllGroups.Known[-inTrain,]
 @
 
-<<echo=TRUE, eval=TRUE>>=
-  nExecutor <- 12
-@
 
 
 
@@ -728,7 +837,7 @@
 
 
 
-<<Create Final Prediction Random Forrest, echo=TRUE, eval=TRUE>>=
+<<Create Final Prediction Random Forrest, echo=TRUE, eval=FALSE>>=
   Final.RFModel <- drandomForest(gname ~ .,
                                  data=group.data.training,
                                  mtry=3,
@@ -745,12 +854,12 @@
   Final.auc <- (sum(Final.preds == group.data.testing[,1])/nrow(group.data.testing))*100
 @
 
-<<Final Prediction Model Accuracy Output, echo=TRUE, eval=TRUE>>=
+<<Final Prediction Model Accuracy Output, echo=TRUE, eval=FALSE>>=
   cat("Final model prediction accuracy:", Final.auc)
   @
   
   
-  <<Predict Unknown Attacks using Final Prediction Model, echo=TRUE, eval=TRUE>>=
+  <<Predict Unknown Attacks using Final Prediction Model, echo=TRUE, eval=FALSE>>=
   predictedUnknowns <- predict.drandomForest(Final.RFModel,
                                              my_df.AllGroups.Unknown[,-1])
   my_df.AllGroups.Unknown.Predicted <- cbind(gname=predictedUnknowns,
@@ -758,7 +867,7 @@
 @
 
 
-<<Create Bar Plot of all Predicted Terrorist Groups excl Other catagory, echo=TRUE, eval=TRUE>>=
+<<Create Bar Plot of all Predicted Terrorist Groups excl Other catagory, echo=TRUE, eval=FALSE>>=
   my_df.predictedUnknowns.freq <- count(my_df.AllGroups.Unknown.Predicted$gname)
   my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[!(my_df.predictedUnknowns.freq$x =="Other"), ]
   my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[order(my_df.predictedUnknowns.freq$freq,
@@ -787,7 +896,7 @@
   my_df.predictedUnknowns.barplot
 @
 
-<<Output Final Model Results, echo=FALSE, eval=TRUE>>=
+<<Output Final Model Results, echo=FALSE, eval=FALSE>>=
   cat("Quantity of Unknown Terrorist attacks predicted:",
       nrow(my_df.AllGroups.Unknown.Predicted),
       "attacks.")
@@ -795,12 +904,5 @@
       nrow(my_df.AllGroups.Unknown.Predicted[!(my_df.AllGroups.Unknown.Predicted$gname =="Other"), ]),
       "attacks.")
 @
-
-
-
-\subsection{Another subtitle}
-\label{ssec:another_subtitle}
-
-More plain text.
 
 \end{document}
