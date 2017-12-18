@@ -583,8 +583,11 @@
         \end{figure}
         
         
+        The repeat of the word 'Fire' in both wordclouds seemed interesting to me. It may be because, as we noticed earlier, due to Armed Assault being the second most common terrorist attack type. It may also be because the word 'Fire' can have multiple uses, such as to describe a blaze, or to use a rifle.\par An interesting diffrence I noticed is that the word 'bomb' is one of the most popular words used to describe terrorist incidents globally, compared to the uk which uses the plural 'bombs' more frequently. This may suggest that the use of more than one explosive device is more common in UK terror attacks vs the terror attacks that happen on a global scale.
       
       
+\section{Random Forest & Predictions}
+\label{sec:RFPredictions}
 
 \small
 <<AllGroup Known and Unknown Dataset creation, echo=TRUE, eval=FALSE>>=
@@ -614,24 +617,24 @@
   
   my_df.AllGroups=na.omit(my_df.AllGroups)
   
-  my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname =="Unknown"), ]
+  my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname=="Unknown"), ]
   
-  my_df.AllGroups.Unknown <- my_df.AllGroups[(my_df.AllGroups$gname =="Unknown"), ]
+  my_df.AllGroups.Unknown <- my_df.AllGroups[(my_df.AllGroups$gname=="Unknown"), ]
   
-  my_df.AllGroups.Known$gname <- factor(my_df.AllGroups.Known$gname)
-  my_df.AllGroups.Known$nkill <- as.numeric(my_df.AllGroups.Known$nkill)
-  my_df.AllGroups.Known$region <- factor(my_df.AllGroups.Known$region)
-  my_df.AllGroups.Known$success <- factor(my_df.AllGroups.Known$success)
-  my_df.AllGroups.Known$attacktype1 <- factor(my_df.AllGroups.Known$attacktype1)
-  my_df.AllGroups.Known$weaptype1 <- factor(my_df.AllGroups.Known$weaptype1)
+  my_df.AllGroups.Known$gname <-factor(my_df.AllGroups.Known$gname)
+  my_df.AllGroups.Known$nkill <-as.numeric(my_df.AllGroups.Known$nkill)
+  my_df.AllGroups.Known$region <-factor(my_df.AllGroups.Known$region)
+  my_df.AllGroups.Known$success <-factor(my_df.AllGroups.Known$success)
+  my_df.AllGroups.Known$attacktype1 <-factor(my_df.AllGroups.Known$attacktype1)
+  my_df.AllGroups.Known$weaptype1 <-factor(my_df.AllGroups.Known$weaptype1)
   
   
-  my_df.AllGroups.Unknown$gname <- factor(my_df.AllGroups.Unknown$gname)
-  my_df.AllGroups.Unknown$nkill <- as.numeric(my_df.AllGroups.Unknown$nkill)
-  my_df.AllGroups.Unknown$region <- factor(my_df.AllGroups.Unknown$region)
-  my_df.AllGroups.Unknown$success <- factor(my_df.AllGroups.Unknown$success)
-  my_df.AllGroups.Unknown$attacktype1 <- factor(my_df.AllGroups.Unknown$attacktype1)
-  my_df.AllGroups.Unknown$weaptype1 <- factor(my_df.AllGroups.Unknown$weaptype1)
+  my_df.AllGroups.Unknown$gname <-factor(my_df.AllGroups.Unknown$gname)
+  my_df.AllGroups.Unknown$nkill <-as.numeric(my_df.AllGroups.Unknown$nkill)
+  my_df.AllGroups.Unknown$region <-factor(my_df.AllGroups.Unknown$region)
+  my_df.AllGroups.Unknown$success <-factor(my_df.AllGroups.Unknown$success)
+  my_df.AllGroups.Unknown$attacktype1 <-factor(my_df.AllGroups.Unknown$attacktype1)
+  my_df.AllGroups.Unknown$weaptype1 <-factor(my_df.AllGroups.Unknown$weaptype1)
 
 @
 \normalsize
@@ -660,6 +663,9 @@
     xlab("Terorist Group (Name)")
   my_df.group.barplot <- my_df.group.barplot + 
     ylab("Quantity of Incidents (incidents)")
+@
+
+<<Global group watermark,eval=TRUE,echo=FALSE>>=
   my_df.group.barplot <- my_df.group.barplot + 
     annotation_custom(xmin=-Inf,
                       ymin=-Inf,
@@ -669,8 +675,13 @@
                         watermark
                         )
                       )
+@
+
+<<Global group plot,eval=TRUE,echo=FALSE>>=
   my_df.group.barplot
 @
+
+
 
 
 <<Count UK group attack occurences and plot, echo=TRUE, eval=FALSE>>=
@@ -685,13 +696,23 @@
                                     y=freq
                                     )
                                   ) 
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + geom_bar(stat="identity") 
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + coord_flip()
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + theme_igray()
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + scale_colour_tableau()
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + ggtitle("United Kingdom Terrorist Group Attacks")
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + xlab("Terorist Group (Name)")
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + ylab("Quantity of Incidents (incidents)")
+  my_df.uk.group.barplot <- my_df.uk.group.barplot +
+    geom_bar(stat="identity") 
+  my_df.uk.group.barplot <- my_df.uk.group.barplot +
+    coord_flip()
+  my_df.uk.group.barplot <- my_df.uk.group.barplot +
+    theme_igray()
+  my_df.uk.group.barplot <- my_df.uk.group.barplot +
+    scale_colour_tableau()
+  my_df.uk.group.barplot <- my_df.uk.group.barplot +
+    ggtitle("United Kingdom Terrorist Group Attacks")
+  my_df.uk.group.barplot <- my_df.uk.group.barplot +
+    xlab("Terorist Group (Name)")
+  my_df.uk.group.barplot <- my_df.uk.group.barplot +
+    ylab("Quantity of Incidents (incidents)")
+@
+
+<<UK GROUP PLOT WATERMARK,eval=TRUE,echo=FALSE>>=
   my_df.uk.group.barplot <- my_df.uk.group.barplot + annotation_custom(xmin=-Inf,
                                                                        ymin=-Inf,
                                                                        xmax=Inf,
@@ -700,8 +721,14 @@
                                                                          watermark
                                                                          )
                                                                        )
+
+@
+
+<<Uk Group plot,eval=TRUE,echo=FALSE>>=
   my_df.uk.group.barplot
 @
+
+
 
 
 
@@ -759,14 +786,24 @@
                                   y=Accuracy
                                   )
                                 )
-  trees.accuracy.plot <- trees.accuracy.plot + geom_line() + geom_point()
-  trees.accuracy.plot <- trees.accuracy.plot + xlim(100,trees.ntrees)
-  trees.accuracy.plot <- trees.accuracy.plot + theme_calc()
-  trees.accuracy.plot <- trees.accuracy.plot + scale_color_calc()
-  trees.accuracy.plot <- trees.accuracy.plot + ggtitle("Number of Trees vs Model Accuracy")
-  trees.accuracy.plot <- trees.accuracy.plot + xlab("NTrees (Number of Trees)")
-  trees.accuracy.plot <- trees.accuracy.plot + ylab("Accuracy (percentage %)")
-  trees.accuracy.plot <- trees.accuracy.plot + annotation_custom(xmin=-Inf,
+  trees.accuracy.plot <- trees.accuracy.plot +
+    geom_line() + geom_point()
+  trees.accuracy.plot <- trees.accuracy.plot +
+    xlim(100,trees.ntrees)
+  trees.accuracy.plot <- trees.accuracy.plot +
+    theme_calc()
+  trees.accuracy.plot <- trees.accuracy.plot +
+    scale_color_calc()
+  trees.accuracy.plot <- trees.accuracy.plot +
+    ggtitle("Number of Trees vs Model Accuracy")
+  trees.accuracy.plot <- trees.accuracy.plot +
+    xlab("NTrees (Number of Trees)")
+  trees.accuracy.plot <- trees.accuracy.plot +
+    ylab("Accuracy (percentage %)")
+@
+
+<<Trees plot Watermark,eval=TRUE,echo=FALSE>>=
+trees.accuracy.plot <- trees.accuracy.plot + annotation_custom(xmin=-Inf,
                                                                  ymin=-Inf,
                                                                  xmax=Inf,
                                                                  ymax=Inf,
@@ -774,8 +811,13 @@
                                                                    watermark
                                                                    )
                                                                  )
+@
+
+<<Trees plot,eval=TRUE,echo=FALSE>>=
   trees.accuracy.plot
 @
+
+
 
 
 <<Number of mtry Effect Random Forest Accuracy, echo=TRUE, eval=FALSE>>=
@@ -824,6 +866,9 @@
   mtry.accuracy.plot <- mtry.accuracy.plot + ggtitle("Number of Mtrys vs Model Accuracy")
   mtry.accuracy.plot <- mtry.accuracy.plot + xlab("Mtrys (Number of Mtrys)")
   mtry.accuracy.plot <- mtry.accuracy.plot + ylab("Accuracy (percentage %)")
+@
+
+<<mtry plot watermark,eval=TRUE,echo=FALSE>>=
   mtry.accuracy.plot <- mtry.accuracy.plot + annotation_custom(xmin=-Inf,
                                                                ymin=-Inf,
                                                                xmax=Inf,
@@ -832,8 +877,13 @@
                                                                  watermark
                                                                  )
                                                                )
+@
+
+<<mtry plot plot,eval=TRUE,echo=FALSE>>=
   mtry.accuracy.plot
 @
+
+
 
 
 
@@ -885,7 +935,10 @@
   my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + ggtitle("Predicted Terrorist Groups and corrisponding Attacks")
   my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + xlab("Terorist Group (Name)")
   my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + ylab("Quantity of Predicted Incidents (incidents)")
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + annotation_custom(xmin=-Inf,
+@
+
+<<Predicted Terrorist Watermark plot,eval=TRUE, echo=FALSE>>=
+my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + annotation_custom(xmin=-Inf,
                                                                                          ymin=-Inf,
                                                                                          xmax=Inf,
                                                                                          ymax=Inf,
@@ -893,8 +946,13 @@
                                                                                            watermark
                                                                                            )
                                                                                          )
+@
+
+<<Predicted Terrorist plot,eval=TRUE,echo=FALSE>>=
   my_df.predictedUnknowns.barplot
 @
+
+
 
 <<Output Final Model Results, echo=FALSE, eval=FALSE>>=
   cat("Quantity of Unknown Terrorist attacks predicted:",
