@@ -40,7 +40,7 @@
         \vspace{0.4cm}
         CM3111 - Full Time: Big Data Analytics\\
         Robert Gordon University\\
-        \today
+        December 18th, 2017
         
     \end{center}
 \end{titlepage}
@@ -272,13 +272,16 @@
                                             fill="#7f7f7f",
                                             size = 0.05,
                                             alpha = 1/3)
-        worldmap <- worldmap + coord_fixed(1.3)
-        worldmap <- worldmap + geom_point(data = my_df,
-                                          aes(x = longitude,
-                                              y = latitude),
-                                          color="#991500",
-                                          size = 0.10,
-                                          alpha = 1/30) 
+        worldmap <- worldmap + 
+          coord_fixed(1.3)
+        worldmap <- worldmap + 
+          geom_point(data = my_df,
+                     aes(x = longitude,
+                         y = latitude),
+                     color="#991500",
+                     size = 0.10,
+                     alpha = 1/30) 
+        
         worldmap <- worldmap + 
           scale_color_tableau()
         worldmap <- worldmap + 
@@ -320,7 +323,7 @@
   \label{ssec:PieChartAttackType}
   
     \subsubsection{Introduction}
-      We will take a small selection of data from our main dataset, to create a new dataframe. We wish to find out the frequency of diffrent Attack Types to see if there are particular Attack Types that are more persistant.
+      We will take a small selection of data from our main dataset, to create a new dataframe. We wish to find out the frequency of different Attack Types to see if there are particular Attack Types that are more persistent.
   
     \subsubsection{Sub-setting Attack data}
       
@@ -333,7 +336,7 @@
       
       
     \subsubsection{Calculate Attack Type Percentage and Sort}
-      We will now append a new column called percent to our dataframe that will contain the percentage of specific attack type in proportion to its peers. To  do this, will will need to create a loop to access the specific index of the record we wish to change and the index of percent we wish to create. From there its a case of calculating the percentage with the rest of the information that we aquired before.   
+      We will now append a new column called percent to our dataframe that will contain the percentage of specific attack type in proportion to its peers. To  do this, will will need to create a loop to access the specific index of the record we wish to change and the index of percent we wish to create. From there its a case of calculating the percentage with the rest of the information that we acquired before.   
       \small
       <<Calculate Frequency and Percentage of AttackTypes, eval=TRUE, echo=TRUE>>=
         
@@ -345,16 +348,16 @@
                                                                   decreasing = T),]
       @
       \normalsize
-      Now we have populated the percentage feild, we can sort our dataframe from highest value of freqency to lowest which will make the data nice to read when we create a table with it next.
+      Now we have populated the percentage field, we can sort our dataframe from highest value of frequency to lowest which will make the data nice to read when we create a table with it next.
     \subsubsection{Attack Type Table}
-      We will make use of the xtable package, that takes in our dataframe as a paramiter, and outputs it to my document in \LaTeX  formatting. 
+      We will make use of the xtable package, that takes in our dataframe as a parameter, and outputs it to my document in \LaTeX  formatting. 
       <<AttackType Dataframe to table, eval=TRUE, echo=FALSE, results="asis">>=
        print(xtable(my_df.countattacktype,
                     caption="Frequency and Percentage of Attack Types"))
       @
       We can see from this table that Bombing/Explosion seems to have the highest percentage of frequency vs the alternative Attack Types.
     \subsubsection{Plot table to Pie Chart}
-      We can take the information in our dataframe and create a Pie Chart to better visualise it. We can make use of ggplot2 to createa an initial barplot, then convert it into a circular version, aka a pie chart. 
+      We can take the information in our dataframe and create a Pie Chart to better visualize it. We can make use of ggplot2 to create an initial bar plot, then convert it into a circular version, aka a pie chart. 
       <<BarChart of all Terrorist attack types, eval=TRUE, echo=TRUE>>=
       my_df.countattacktype.bp <- ggplot(my_df.countattacktype,
                                          aes(x="",
@@ -375,7 +378,7 @@
       my_df.countattacktype.bp <- my_df.countattacktype.bp +
         ylab("")
       @
-      Once we have our Bar chart created, we can now go about converting it to a Piechart.
+      Once we have our Bar chart created, we can now go about converting it to a Pie chart.
       
       <<Convert to Piechart of all Terrorist attack types, eval=TRUE, echo=TRUE>>=
         my_df.countattacktype.pie <- my_df.countattacktype.bp +
@@ -397,7 +400,7 @@
       \end{figure}
       
       \clearpage
-      The piechart shows the same information that our table did from before. I find, however, it better visualises the suprising proportion of terrorist attacks that are Bombing/Explosion conducted. The proportion of the next closest type of attack,Armed Assault, is significantly smaller in comaprison.
+      The pie chart shows the same information that our table did from before. I find, however, it better visualizes the surprising proportion of terrorist attacks that are Bombing/Explosion conducted. The proportion of the next closest type of attack,Armed Assault, is significantly smaller in comparison.
       
       \pagebreak
       
@@ -407,10 +410,10 @@
   \label{ssec:CorpusDTMWordcloud}
   
     \subsubsection{Section Introduction}
-      Another form of visualising data for analysis is to use the wordcloud, or wordcloud2 packages. These packages both generate an image of multiple words, their size dictating the higher the frequency of use. The GTD supplies us with a feature called Summary which contains summary information about specific terrorist incidents. What would be interesting to see is the most commonly used words in theses passages, and see if the most frequent words used in summaries globaly differs from a specific country, such as the United Kingdom.
+      Another form of visualizing data for analysis is to use the wordcloud, or wordcloud2 packages. These packages both generate an image of multiple words, their size dictating the higher the frequency of use. The GTD supplies us with a feature called Summary which contains summary information about specific terrorist incidents. What would be interesting to see is the most commonly used words in theses passages, and see if the most frequent words used in summaries globally differs from a specific country, such as the United Kingdom.
   
-    \subsubsection{Copus Creation Function}
-      To be able to create a Document Text Matrix, we must be able to collate a collection of text documnets. A Corpus, or VCorpus, allows us to be able to do just that. We will make use of the very powerful tm, or Text Mining, Package in R that can help us in the creation of Corpus's and then later, Document Text Matrix's.\par We will create a function that will allow us to reduce the reppition of code, as we plan to make more than one wordcloud. The purpose of our buildCopus function is to take in a list of summary records, then convert them to a Corpus to be steralized. We can steralize the docments for symbols, via the use of regual expressions, and stop words such as, as and the that, etc... We will alose make sure to remove white space and numbers from our Corpus's as to only retain words of particular intrest, such as verbs and nouns.
+    \subsubsection{Corpus Creation Function}
+      To be able to create a Document Text Matrix, we must be able to collate a collection of text documents. A Corpus, or VCorpus, allows us to be able to do just that. We will make use of the very powerful tm, or Text Mining, Package in R that can help us in the creation of Corpus's and then later, Document Text Matrix's.\par We will create a function that will allow us to reduce the repetition of code, as we plan to make more than one wordcloud. The purpose of our buildCopus function is to take in a list of summary records, then convert them to a Corpus to be sterilized. We can sterilize the documents for symbols, via the use of regular expressions, and stop words such as, as and the that, etc... We will also make sure to remove white space and numbers from our Corpus's as to only retain words of particular interest, such as verbs and nouns.
 
       <<Corpus Building Function Used throughout program, eval=TRUE, echo=TRUE>>=
         buildCorpus <- function(someText){
@@ -479,7 +482,7 @@
       @
       
     \subsubsection{DocumentTextMatrix Creation}
-      We will now create a Document Text Matrix by initially building our corpus, using our buildCorpus fucntion. From there we can then create our Document Text Matrix objects with the end result being a dataframe with words and their frequency of use.
+      We will now create a Document Text Matrix by initially building our corpus, using our buildCorpus function. From there we can then create our Document Text Matrix objects with the end result being a dataframe with words and their frequency of use.
 
       <<Construct DocumentTermMatrix then create dataframe with word frequency, eval=FALSE>>=
         my_df.AllSummary<-as.data.frame(my_df.full_summary$summary)
@@ -504,7 +507,7 @@
                                    freq=AllSummary.v)
       @
     \subsubsection{Global Wordcloud Creation}
-      Once we have aquired our Word Frequency Matrix, we can then make use of wordcloud2 to show an amazing figure of most commanly used words. Wordcloud2 is more special than wordcloud as it allows us to specify a figPath, that we can map the shape of our output to be like. In this example, as we are showing words from Summaries from all countries globaly, my figPath shall make our output look like the globe!
+      Once we have acquired our Word Frequency Matrix, we can then make use of wordcloud2 to show an amazing figure of most commonly used words. Wordcloud2 is more special than wordcloud as it allows us to specify a figPath, that we can map the shape of our output to be like. In this example, as we are showing words from Summaries from all countries globally, my figPath shall make our output look like the globe!
       <<Global wordcloudplot, fig.show='hold', echo=TRUE, eval=FALSE>>=
         wordcloud2(AllSummary.d,
                    figPath = "Assets/world.png",
@@ -524,20 +527,20 @@
       \pagebreak
       
     \subsubsection{UK Subset Data}
-      Now we will analyse the data of UK Terror Incidents. To do this, we will need to create a dataframe which only contiants incidents that have occured in the United Kingdom. From refering to the GTD refrence's on their website, the country code for the United Kingdom is 603. We will now create a dataset that only contains incidents from the United Kingdom.
+      Now we will analyse the data of UK Terror Incidents. To do this, we will need to create a dataframe which only contains incidents that have occurred in the United Kingdom. From referring to the GTD reference's on their website, the country code for the United Kingdom is 603. We will now create a dataset that only contains incidents from the United Kingdom.
       <<Create UK only Dataset, eval=TRUE, echo=TRUE>>=
         my_df.UK.AllGroups <- my_df[my_df$country==603,]
       @
       
     \subsubsection{UK - Create Summary Dataframe}
-      Now we have this data singled out, we can go ahead and start to create a dataframe that only has UK Summary information. We will once again need to make sure thatn that this data has no null values and  is a full dataframe with Summary information.\par This time, instead of comparing records and manually replacing them with null entries, we can make use of the na.omit function that omits null entries in a dataframe. 
+      Now we have this data singled out, we can go ahead and start to create a dataframe that only has UK Summary information. We will once again need to make sure that this data has no null values and  is a full dataframe with Summary information.\par This time, instead of comparing records and manually replacing them with null entries, we can make use of the na.omit function that omits null entries in a dataframe. 
       <<Create a subset of UK summary informaction, echo=TRUE, eval=FALSE>>=
         my_df.UK.AllGroups.Summary <- my_df.UK.AllGroups$summary
         my_df.UK.AllGroups.Summary = na.omit(my_df.UK.AllGroups.Summary)
       @
       
     \subsubsection{UK - DocumentTextMatrix Creation}
-      We can now opnce again build our Document Text Matrix using the same format bellow. The only diffrence between this code and before is we wish to save our data in new variable names, specific to the United Kingdom.
+      We can now once again build our Document Text Matrix using the same format bellow. The only difference between this code and before is we wish to save our data in new variable names, specific to the United Kingdom.
       <<Build Corpus and DTM for UK Summary Information, echo=TRUE, eval=FALSE>>=
         uk.corpus <- buildCorpus(my_df.UK.AllGroups.Summary$summary)
         uk.dtm <- TermDocumentMatrix(uk.corpus)
@@ -549,7 +552,7 @@
       @
       
     \subsubsection{UK Wordcloud Creation}
-      Finnaly, we can create our wordcloud. This time, I've decided to map our wordcloud to a figPath of the United Kingdom. 
+      Finally, we can create our wordcloud. This time, I've decided to map our wordcloud to a figPath of the United Kingdom. 
       <<Wordcloud of UK common incident Words, eval=FALSE, echo=TRUE, dev='png'>>=
       wordcloud2(uk.d,
                  figPath = "Assets/uk.png",
@@ -566,7 +569,7 @@
       
       \clearpage
       
-      \subsubsection{Similarites and Diffrences between Wordclouds}
+      \subsubsection{Similarities and Differences between Wordclouds}
       
         \begin{figure}
           \centering
@@ -583,10 +586,10 @@
         \end{figure}
         
         
-        The repeat of the word 'Fire' in both wordclouds seemed interesting to me. It may be because, as we noticed earlier, due to Armed Assault being the second most common terrorist attack type. It may also be because the word 'Fire' can have multiple uses, such as to describe a blaze, or to use a rifle.\par An interesting diffrence I noticed is that the word 'bomb' is one of the most popular words used to describe terrorist incidents globally, compared to the uk which uses the plural 'bombs' more frequently. This may suggest that the use of more than one explosive device is more common in UK terror attacks vs the terror attacks that happen on a global scale.
+        The repeat of the word 'Fire' in both wordclouds seemed interesting to me. It may be because, as we noticed earlier, due to Armed Assault being the second most common terrorist attack type. It may also be because the word 'Fire' can have multiple uses, such as to describe a blaze, or to use a rifle.\par An interesting difference I noticed is that the word 'bomb' is one of the most popular words used to describe terrorist incidents globally, compared to the UK which uses the plural 'bombs' more frequently. This may suggest that the use of more than one explosive device is more common in UK terror attacks vs the terror attacks that happen on a global scale.
       
       
-\section{Random Forest & Predictions}
+\section{Random Forest and Predictions}
 \label{sec:RFPredictions}
 
 \small
@@ -683,19 +686,22 @@
 
 
 
-
-<<Count UK group attack occurences and plot, echo=TRUE, eval=FALSE>>=
-  
-  my_df.UK.AllGroups.freq <- count(my_df.UK.AllGroups$gname)
-  my_df.UK.AllGroups.freq <- my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x =="Unknown"), ]
-  my_df.uk.number.of.groups <- my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq,
+\small
+<<Count UK group attack occurences, echo=TRUE, eval=FALSE>>=
+  my_df.UK.AllGroups.freq <-count(my_df.UK.AllGroups$gname)
+  my_df.UK.AllGroups.freq <-my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x=="Unknown"), ]
+  my_df.uk.number.of.groups <-my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq,
                                                              decreasing = T),]
+@
+\normalsize
+
+<<Make Attack Occurences plot,eval=TRUE,echo=TRUE>>=
   my_df.uk.group.barplot<- ggplot(data=my_df.uk.number.of.groups[1:10,],
-                                  aes(
-                                    x=x,
-                                    y=freq
-                                    )
-                                  ) 
+                                    aes(
+                                      x=x,
+                                      y=freq
+                                      )
+                                    ) 
   my_df.uk.group.barplot <- my_df.uk.group.barplot +
     geom_bar(stat="identity") 
   my_df.uk.group.barplot <- my_df.uk.group.barplot +
@@ -711,6 +717,8 @@
   my_df.uk.group.barplot <- my_df.uk.group.barplot +
     ylab("Quantity of Incidents (incidents)")
 @
+
+
 
 <<UK GROUP PLOT WATERMARK,eval=TRUE,echo=FALSE>>=
   my_df.uk.group.barplot <- my_df.uk.group.barplot + annotation_custom(xmin=-Inf,
