@@ -32,7 +32,7 @@
         
         \includegraphics[width=1\textwidth]{coverImage}
         \vspace{0.4cm}
-        {\scriptsize Wordcloud Generated from most frequently used words when reporting                 Terrorism}\\
+        {\scriptsize Wordcloud Generated from most frequently used words when Reports summarize Terrorism}\\
         \vspace{0.4cm}
         CM3111 - Full Time: Big Data Analytics\\
         Robert Gordon University\\
@@ -54,7 +54,7 @@
   
     For the last decade, Terrorist Incidents have been perceived to be on the rise. Every time you turn on the TV and watch the evening news, you are presented with a new headline from a new city that has been struck by a horrific event. What this Big Data module has taught me is that the art of analysing and visualising data is an act of telling a story to a viewer. My aim for this report, is to see if the stories that we are told, about the state of Global Terrorism, are as damning as we are led to believe.\par If this is the case, who are the main players? Do groups perform terrorism on a global scale? What does terrorism look like, and can we predict who does it?
     
-    \vspace{1.5cm}
+    \vspace{2cm}
   
   \subsection{Citing Sources}
   \label{ssec:Citing Source}
@@ -64,144 +64,171 @@
 
 \section{Enviroment Setup}
 \label{sec:Enviroment Setup}
-  \subsection{Kniter Defaults}
-  \label{ssec:Kniter Defaults}
-    
-    <<Kniter suppress warning messages, eval=TRUE,echo=TRUE>>=
-    library(knitr)
-    knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+
+    <<Kniter suppress warning messages, eval=TRUE,echo=FALSE>>=
+      library(knitr)
+      knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+      options(stringsAsFactors = FALSE)
     @
     
   \subsection{Include Librarys}
   \label{ssec:Include Librarys}
+  
+  We will start our script with library declarations of all the required packages. These packages are vital to the operation of the script. There are some very nice visualisation packages such as "ggplot2" and "wordcloud2" that we will get to see more of, throughout the report. 
+  
     <<List of packages that will be utilised in my application, eval=TRUE, echo=TRUE>>=
-    library(tidyverse)
-    library(ggplot2)
-    library(ggmap)
-    library(maps)
-    library(mapdata)
-    library(maptools)
-    library(ggthemes)
-    library(ggalt)
-    library(wordcloud)
-    library(tm)
-    library(RColorBrewer)
-    library(SnowballC)
-    library(wordcloud2)
-    library(Matrix)
-    library(tidytext)
-    library(magrittr)
-    library(webshot)
-    
-    
-    library(ddR)
-    library(randomForest.ddR)
-    library(caret)
-    library(forcats)
-    library(plyr)
-    
-    library(shiny)
-    library(trelliscopejs)
-    library(htmlwidgets)
-    library(grid)
-    library(png)
-    
-    options(stringsAsFactors = FALSE)
-    set.seed(4205426)
+      library(tidyverse)
+      library(ggplot2)
+      library(ggmap)
+      library(maps)
+      library(mapdata)
+      library(maptools)
+      library(ggthemes)
+      library(ggalt)
+      library(wordcloud)
+      library(tm)
+      library(RColorBrewer)
+      library(SnowballC)
+      library(wordcloud2)
+      library(Matrix)
+      library(tidytext)
+      library(magrittr)
+      library(webshot)
+      library(ddR)
+      library(randomForest.ddR)
+      library(caret)
+      library(forcats)
+      library(plyr)
+      library(shiny)
+      library(trelliscopejs)
+      library(htmlwidgets)
+      library(grid)
+      library(png)
     @
-
+  \subsection{Create Seed}
+  \label{ssec:Create Seed}
+  
+    We will set the seed of the script to a specific number so that our results can be repeatable and consistent.
+    
+    <<Setting Document Seed for repetable results, echo=TRUE, eval=FALSE>>=
+      set.seed(4205426)
+    @
+    
+    
 
 <<Watermark Creation, eval=TRUE, echo=FALSE>>=
-img <- png::readPNG("Assets/watermark.png")
-watermark <- matrix(rgb(img[,,1],img[,,2],img[,,3], img[,,4] * 0.1), nrow=dim(img)[1]) #0.2 is alpha
+  img <- png::readPNG("Assets/watermark.png")
+  watermark <- matrix(rgb(img[,,1],img[,,2],img[,,3], img[,,4] * 0.1), nrow=dim(img)[1]) #0.1 is alpha
 @
 
 
 
 
 <<Import dataset from csv file, eval=TRUE, echo=TRUE>>=
-# Import csv file from the Assets folder
-orig_df = read.csv("Assets/globalterrorismdb.csv", na.strings=c("", "NA", "NULL"))  # read csv file
-# Once dataset has been imported and asigned, create a working copy that we can use in our application
-my_df <- orig_df
-# # we will now use tha attach command to allow us to refrence features without having to state what table they are from in our script
-# attach(my_df)
+  # Import csv file from the Assets folder
+  orig_df = read.csv("Assets/globalterrorismdb.csv",
+                     na.strings=c("", "NA", "NULL"))  # read csv file
+  # Once dataset has been imported and asigned, create a working copy that we can use in our application
+  my_df <- orig_df
+  # # we will now use tha attach command to allow us to refrence features without having to state what table they are from in our script
+  # attach(my_df)
 @
 
 <<Data Exploration, eval=TRUE,echo=TRUE>>=
-# Start by seeinghow many rows and feature our dataset has by using dim
-dim(my_df)
-names(my_df)
-attach(my_df)
+  # Start by seeinghow many rows and feature our dataset has by using dim
+  dim(my_df)
+  names(my_df)
+  attach(my_df)
 @
 
 <<Histogram of Recorded Terrorist Incidents, eval=TRUE, echo=TRUE>>=
-my_df.Histogram.Year <- ggplot(my_df, aes(x = iyear)) 
-my_df.Histogram.Year <- my_df.Histogram.Year + annotation_custom(xmin=-Inf, ymin=-Inf, xmax=Inf, ymax=Inf, rasterGrob(watermark))
-my_df.Histogram.Year <- my_df.Histogram.Year + geom_bar()
-my_df.Histogram.Year <- my_df.Histogram.Year + theme_igray()
-my_df.Histogram.Year <- my_df.Histogram.Year + scale_colour_tableau()
-my_df.Histogram.Year <- my_df.Histogram.Year + ggtitle("Histogram of Recorded Terrorist Incidents")
-my_df.Histogram.Year <- my_df.Histogram.Year + xlab("Year (Year)")
-my_df.Histogram.Year <- my_df.Histogram.Year + ylab("Quantity of Incidents (incidents)")
-
-my_df.Histogram.Year
+  my_df.Histogram.Year <- ggplot(my_df, aes(x = iyear)) 
+  my_df.Histogram.Year <- my_df.Histogram.Year + annotation_custom(xmin=-Inf,
+                                                                   ymin=-Inf,
+                                                                   xmax=Inf,
+                                                                   ymax=Inf,
+                                                                   rasterGrob(
+                                                                     watermark
+                                                                     )
+                                                                   )
+  my_df.Histogram.Year <- my_df.Histogram.Year + geom_bar()
+  my_df.Histogram.Year <- my_df.Histogram.Year + theme_igray()
+  my_df.Histogram.Year <- my_df.Histogram.Year + scale_colour_tableau()
+  my_df.Histogram.Year <- my_df.Histogram.Year + ggtitle("Histogram of Recorded Terrorist Incidents")
+  my_df.Histogram.Year <- my_df.Histogram.Year + xlab("Year (Year)")
+  my_df.Histogram.Year <- my_df.Histogram.Year + ylab("Quantity of Incidents (incidents)")
+  
+  my_df.Histogram.Year
 @
 
 
 <<Map of all known Terrorist attacks, eval=TRUE, echo=TRUE>>=
-worldmapcords <- map_data("world")
-worldmapcords <- worldmapcords[worldmapcords$region != "Antarctica",]
-worldmap <- ggplot() 
-worldmap <- worldmap + geom_polygon(data = worldmapcords, aes(x = long, y = lat, group = group), fill="#7f7f7f", size=0.05, alpha=1/3) 
-worldmap <- worldmap + coord_fixed(1.3)
-worldmap <- worldmap + geom_point(data = my_df, aes(x = longitude, y = latitude), color="#991500", size = 0.10, alpha = 1/30) 
-worldmap <- worldmap + scale_color_tableau()
-worldmap <- worldmap + theme_map()
-worldmap <- worldmap + theme(strip.background=element_blank())
-worldmap <- worldmap + theme(legend.position="none")
-worldmap <- worldmap + ggtitle("Map of All Terrorist Activity, 1970-2016")
-worldmap
-detach(my_df)
+  worldmapcords <- map_data("world")
+  worldmapcords <- worldmapcords[worldmapcords$region != "Antarctica",]
+  worldmap <- ggplot() 
+  worldmap <- worldmap + geom_polygon(data = worldmapcords,
+                                      aes(x = long, y = lat, group = group),
+                                      fill="#7f7f7f", size=0.05, alpha=1/3) 
+  worldmap <- worldmap + coord_fixed(1.3)
+  worldmap <- worldmap + geom_point(data = my_df,
+                                    aes(x = longitude, y = latitude),
+                                    color="#991500",
+                                    size = 0.10,
+                                    alpha = 1/30) 
+  worldmap <- worldmap + scale_color_tableau()
+  worldmap <- worldmap + theme_map()
+  worldmap <- worldmap + theme(strip.background=element_blank())
+  worldmap <- worldmap + theme(legend.position="none")
+  worldmap <- worldmap + ggtitle("Map of All Terrorist Activity, 1970-2016")
+  worldmap
+  detach(my_df)
 @
 
 <<>>=
-my_df.countattacktype <- count(my_df$attacktype1_txt)
-my_df.countattacktype.freq <- my_df.countattacktype[order(my_df.countattacktype$freq, decreasing = T),]
+  my_df.countattacktype <- count(my_df$attacktype1_txt)
+  my_df.countattacktype.freq <- my_df.countattacktype[order(my_df.countattacktype$freq,
+                                                            decreasing = T),]
 @
 
 
 
 <<Corpus Building Function Used trhoughout program, eval=TRUE>>=
-buildCorpus <- function(someText){
-  # build a corpus, and specify the source to be character vectors
-  myCorpus <- Corpus(VectorSource(someText))
-  # I had to add this line to make the code work
-  # For windows, it may not be an issue
-  myCorpus <- tm_map(myCorpus,
-                              content_transformer(function(x) iconv(x, to='UTF-8',
-                                    sub='byte')))
-  myCorpus <- tm_map(myCorpus, content_transformer(tolower))
-  # remove punctuation
-  myCorpus <- tm_map(myCorpus, removePunctuation)
-  # remove numbers
-  myCorpus <- tm_map(myCorpus, removeNumbers)
-  # remove URLs
-  removeURL <- function(x){
-    sub("http[[:alnum:]]*", "", x)
+  buildCorpus <- function(someText){
+    # build a corpus, and specify the source to be character vectors
+    myCorpus <- Corpus(VectorSource(someText))
+    # I had to add this line to make the code work
+    # For windows, it may not be an issue
+    myCorpus <- tm_map(myCorpus,
+                                content_transformer(function(x) iconv(x, to='UTF-8',
+                                      sub='byte')))
+    myCorpus <- tm_map(myCorpus,
+                       content_transformer(tolower))
+    # remove punctuation
+    myCorpus <- tm_map(myCorpus,
+                       removePunctuation)
+    # remove numbers
+    myCorpus <- tm_map(myCorpus,
+                       removeNumbers)
+    # remove URLs
+    removeURL <- function(x){
+      sub("http[[:alnum:]]*", "", x)
+    }
+    ### myCorpus <- tm_map(myCorpus, removeURL, lazy=TRUE)
+    myCorpus <- tm_map(myCorpus,
+                       content_transformer(removeURL)) #??
+    # add two extra stop words: 'available' and 'via'
+    # myStopwords <- c(stopwords("english"), "RT","rt")
+    # remove "RT from stopwords
+    # myStopwords <- setdiff(myStopwords, c("RT","rt"))
+    # remove stopwords from corpus
+    myCorpus <- tm_map(myCorpus,
+                       function(x) removeWords(x,
+                                               stopwords("english")))
+    myCorpus <- tm_map(myCorpus,
+                       stripWhitespace)
+    # Return the text corpus
+    return(myCorpus)
   }
-  ### myCorpus <- tm_map(myCorpus, removeURL, lazy=TRUE)
-  myCorpus <- tm_map(myCorpus, content_transformer(removeURL)) #??
-  # add two extra stop words: 'available' and 'via'
-  # myStopwords <- c(stopwords("english"), "RT","rt")
-  # remove "RT from stopwords
-  # myStopwords <- setdiff(myStopwords, c("RT","rt"))
-  # remove stopwords from corpus
-  myCorpus <- tm_map(myCorpus, function(x) removeWords(x, stopwords("english")))
-  myCorpus <- tm_map(myCorpus, stripWhitespace)
-  # Return the text corpus
-  return(myCorpus)
-}
 
 @
 
@@ -209,181 +236,371 @@ buildCorpus <- function(someText){
 
 
 <<Remove Summary Information that is null from set, eval=TRUE>>=
-my_df.full_summary <- my_df[!(is.na(my_df$summary) | my_df$summary==""), ]
+  my_df.full_summary <- my_df[!(is.na(my_df$summary) | my_df$summary==""), ]
 @
 
 
 <<Summary splitting, eval=FALSE>>=
-spec = c(set.1 = .1, set.2 = .1, set.3 = .1, set.4 = .1, set.5 = .1, set.6 = .1, set.7 = .1, set.8 = .1, set.9 = .1, set.10 = .1)
-
-g = sample(cut(
-  seq(nrow(my_df.full_summary)), 
-  nrow(my_df.full_summary)*cumsum(c(0,spec)),
-  labels = names(spec)
-))
-
-summarySplits = split(my_df.full_summary, g)
-
+  spec = c(set.1 = .1,
+           set.2 = .1,
+           set.3 = .1,
+           set.4 = .1,
+           set.5 = .1,
+           set.6 = .1,
+           set.7 = .1,
+           set.8 = .1,
+           set.9 = .1,
+           set.10 = .1)
+  
+  g = sample(
+    cut(
+      seq(nrow(my_df.full_summary)),
+      nrow(my_df.full_summary)*cumsum(c(0,spec)),
+      labels = names(spec)
+      )
+    )
+  
+  summarySplits = split(my_df.full_summary, g)
 @
 
 <<Construct DocumentTermMatrix from set1 then create dataframe with word frequency, eval=FALSE>>=
-# test<-as.data.frame(summarySplits$set.1$summary)
-my_df.AllSummary<-as.data.frame(my_df.full_summary$summary)
-my_df.AllSummary.corpus <- buildCorpus(my_df.AllSummary)
-AllSummary.dtm <- TermDocumentMatrix(my_df.AllSummary.corpus)
-AllSummary.m <- as.matrix(AllSummary.dtm)
-AllSummary.v <- sort(rowSums(AllSummary.m),decreasing=TRUE)
-AllSummary.d <- data.frame(word = names(AllSummary.v),freq=AllSummary.v)
+  # test<-as.data.frame(summarySplits$set.1$summary)
+  my_df.AllSummary<-as.data.frame(my_df.full_summary$summary)
+  my_df.AllSummary.corpus <- buildCorpus(my_df.AllSummary)
+  AllSummary.dtm <- TermDocumentMatrix(my_df.AllSummary.corpus)
+  AllSummary.m <- as.matrix(AllSummary.dtm)
+  AllSummary.v <- sort(rowSums(AllSummary.m),decreasing=TRUE)
+  AllSummary.d <- data.frame(word = names(AllSummary.v),freq=AllSummary.v)
 @
 
 
 
 <<wordcloudplot, fig.show='hold', echo=TRUE, eval=FALSE>>=
-# figPath = system.file("Assets/bomb.png",package = "wordcloud2")
-wordcloud2(d, figPath = "Assets/world.png", size = 1.5,color = "random-light")
-widgetThumbnail(p = liam, thumbName = "plot", height = 862, width = 1509)
+  wordcloud2(d, figPath = "Assets/world.png", size = 1.5,color = "random-light")
+  widgetThumbnail(p = liam, thumbName = "plot", height = 862, width = 1509)
 @
 
 
 <<AllGroup Known and Unknown Dataset creation>>=
-
-my_df.AllGroups <- subset(my_df, select=c("gname", "region", "nkill", "attacktype1", "success", "weaptype1", "iday", "iyear", "imonth", "targtype1"))
-
-my_df.AllGroups$gname <- factor(my_df.AllGroups$gname)
-
-
-my_df.AllGroups$gname <- fct_lump(my_df.AllGroups$gname, n = 30)
-# my_df.AllGroups$weaptype1 <- str_replace_all(my_df.AllGroups$weaptype1, "[^[:alnum:]]", " ")
-# 
-# my_df.AllGroups$attacktype1_txt <- str_replace_all(my_df.AllGroups$attacktype1_txt, "[^[:alnum:]]", " ")
-
-my_df.AllGroups$gname <- str_replace_all(my_df.AllGroups$gname, "[^[:alnum:]]", " ")
-
-my_df.AllGroups=na.omit(my_df.AllGroups)
-
-my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname =="Unknown"), ]
-
-my_df.AllGroups.Unknown <- my_df.AllGroups[(my_df.AllGroups$gname =="Unknown"), ]
-
-my_df.AllGroups.Known$gname <- factor(my_df.AllGroups.Known$gname)
-my_df.AllGroups.Known$nkill <- as.numeric(my_df.AllGroups.Known$nkill)
-my_df.AllGroups.Known$region <- factor(my_df.AllGroups.Known$region)
-my_df.AllGroups.Known$success <- factor(my_df.AllGroups.Known$success)
-my_df.AllGroups.Known$attacktype1 <- factor(my_df.AllGroups.Known$attacktype1)
-my_df.AllGroups.Known$weaptype1 <- factor(my_df.AllGroups.Known$weaptype1)
+  my_df.AllGroups <- subset(my_df,
+                            select=c(
+                              "gname",
+                              "region",
+                              "nkill",
+                              "attacktype1",
+                              "success",
+                              "weaptype1",
+                              "iday",
+                              "iyear",
+                              "imonth",
+                              "targtype1"))
+  
+  my_df.AllGroups$gname <- factor(my_df.AllGroups$gname)
+  
+  
+  my_df.AllGroups$gname <- fct_lump(my_df.AllGroups$gname,
+                                    n = 30)
+  
+  my_df.AllGroups$gname <- str_replace_all(my_df.AllGroups$gname,
+                                           "[^[:alnum:]]", " ")
+  
+  my_df.AllGroups=na.omit(my_df.AllGroups)
+  
+  my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname =="Unknown"), ]
+  
+  my_df.AllGroups.Unknown <- my_df.AllGroups[(my_df.AllGroups$gname =="Unknown"), ]
+  
+  my_df.AllGroups.Known$gname <- factor(my_df.AllGroups.Known$gname)
+  my_df.AllGroups.Known$nkill <- as.numeric(my_df.AllGroups.Known$nkill)
+  my_df.AllGroups.Known$region <- factor(my_df.AllGroups.Known$region)
+  my_df.AllGroups.Known$success <- factor(my_df.AllGroups.Known$success)
+  my_df.AllGroups.Known$attacktype1 <- factor(my_df.AllGroups.Known$attacktype1)
+  my_df.AllGroups.Known$weaptype1 <- factor(my_df.AllGroups.Known$weaptype1)
+  
+  
+  my_df.AllGroups.Unknown$gname <- factor(my_df.AllGroups.Unknown$gname)
+  my_df.AllGroups.Unknown$nkill <- as.numeric(my_df.AllGroups.Unknown$nkill)
+  my_df.AllGroups.Unknown$region <- factor(my_df.AllGroups.Unknown$region)
+  my_df.AllGroups.Unknown$success <- factor(my_df.AllGroups.Unknown$success)
+  my_df.AllGroups.Unknown$attacktype1 <- factor(my_df.AllGroups.Unknown$attacktype1)
+  my_df.AllGroups.Unknown$weaptype1 <- factor(my_df.AllGroups.Unknown$weaptype1)
 
 @
 
 <<Count group attack occurences and plot, eval=TRUE, echo=TRUE>>=
-my_df.AllGroups.freq <- count(my_df$gname)
-my_df.AllGroups.freq <- my_df.AllGroups.freq[!(my_df.AllGroups.freq$x =="Unknown"), ]
-my_df.number.of.groups <- my_df.AllGroups.freq[order(my_df.AllGroups.freq$freq, decreasing = T),]
-my_df.group.barplot <- ggplot(data=my_df.number.of.groups[1:10,], aes(x=x, y=freq)) 
-my_df.group.barplot <- my_df.group.barplot + geom_bar(stat="identity")
-my_df.group.barplot <- my_df.group.barplot + coord_flip()
-my_df.group.barplot <- my_df.group.barplot + theme_igray()
-my_df.group.barplot <- my_df.group.barplot + scale_colour_tableau()
-my_df.group.barplot <- my_df.group.barplot + ggtitle("Global Terrorist Group Attacks")
-my_df.group.barplot <- my_df.group.barplot + xlab("Terorist Group (Name)")
-my_df.group.barplot <- my_df.group.barplot + ylab("Quantity of Incidents (incidents)")
-my_df.group.barplot <- my_df.group.barplot + annotation_custom(xmin=-Inf, ymin=-Inf, xmax=Inf, ymax=Inf, rasterGrob(watermark))
-my_df.group.barplot
+  my_df.AllGroups.freq <- count(my_df$gname)
+  my_df.AllGroups.freq <- my_df.AllGroups.freq[!(my_df.AllGroups.freq$x =="Unknown"), ]
+  my_df.number.of.groups <- my_df.AllGroups.freq[order(my_df.AllGroups.freq$freq, decreasing = T),]
+  my_df.group.barplot <- ggplot(data=my_df.number.of.groups[1:10,],
+                                aes(x=x, y=freq)) 
+  my_df.group.barplot <- my_df.group.barplot + geom_bar(stat="identity")
+  my_df.group.barplot <- my_df.group.barplot + coord_flip()
+  my_df.group.barplot <- my_df.group.barplot + theme_igray()
+  my_df.group.barplot <- my_df.group.barplot + scale_colour_tableau()
+  my_df.group.barplot <- my_df.group.barplot + ggtitle("Global Terrorist Group Attacks")
+  my_df.group.barplot <- my_df.group.barplot + xlab("Terorist Group (Name)")
+  my_df.group.barplot <- my_df.group.barplot + ylab("Quantity of Incidents (incidents)")
+  my_df.group.barplot <- my_df.group.barplot + annotation_custom(xmin=-Inf,
+                                                                 ymin=-Inf,
+                                                                 xmax=Inf,
+                                                                 ymax=Inf,
+                                                                 rasterGrob(
+                                                                   watermark
+                                                                   )
+                                                                 )
+  my_df.group.barplot
 @
 
 
 <<Count UK group attack occurences and plot, eval=TRUE, echo=TRUE>>=
-my_df.UK.AllGroups <- my_df[my_df$country==603,]
-my_df.UK.AllGroups.freq <- count(my_df.UK.AllGroups$gname)
-my_df.UK.AllGroups.freq <- my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x =="Unknown"), ]
-my_df.uk.number.of.groups <- my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq, decreasing = T),]
-my_df.uk.group.barplot<-ggplot(data=my_df.uk.number.of.groups[1:10,], aes(x=x, y=freq)) 
-my_df.uk.group.barplot <- my_df.uk.group.barplot + geom_bar(stat="identity") 
-my_df.uk.group.barplot <- my_df.uk.group.barplot + coord_flip()
-my_df.uk.group.barplot <- my_df.uk.group.barplot + theme_igray()
-my_df.uk.group.barplot <- my_df.uk.group.barplot + scale_colour_tableau()
-my_df.uk.group.barplot <- my_df.uk.group.barplot + ggtitle("United Kingdom Terrorist Group Attacks")
-my_df.uk.group.barplot <- my_df.uk.group.barplot + xlab("Terorist Group (Name)")
-my_df.uk.group.barplot <- my_df.uk.group.barplot + ylab("Quantity of Incidents (incidents)")
-my_df.uk.group.barplot <- my_df.uk.group.barplot + annotation_custom(xmin=-Inf, ymin=-Inf, xmax=Inf, ymax=Inf, rasterGrob(watermark))
-my_df.uk.group.barplot
+  my_df.UK.AllGroups <- my_df[my_df$country==603,]
+  my_df.UK.AllGroups.freq <- count(my_df.UK.AllGroups$gname)
+  my_df.UK.AllGroups.freq <- my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x =="Unknown"), ]
+  my_df.uk.number.of.groups <- my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq, decreasing = T),]
+  my_df.uk.group.barplot<- ggplot(data=my_df.uk.number.of.groups[1:10,],
+                                  aes(x=x, y=freq)) 
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + geom_bar(stat="identity") 
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + coord_flip()
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + theme_igray()
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + scale_colour_tableau()
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + ggtitle("United Kingdom Terrorist Group Attacks")
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + xlab("Terorist Group (Name)")
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + ylab("Quantity of Incidents (incidents)")
+  my_df.uk.group.barplot <- my_df.uk.group.barplot + annotation_custom(xmin=-Inf,
+                                                                       ymin=-Inf,
+                                                                       xmax=Inf,
+                                                                       ymax=Inf,
+                                                                       rasterGrob(
+                                                                         watermark
+                                                                         )
+                                                                       )
+  my_df.uk.group.barplot
 @
 
 
 <<>>=
-my_df.UK.AllGroups.SummaryAT <- subset(my_df.UK.AllGroups, select=c("summary", "attacktype1"))
-my_df.UK.AllGroups.SummaryAT = na.omit(my_df.UK.AllGroups.SummaryAT)
+  my_df.UK.AllGroups.SummaryAT <- subset(my_df.UK.AllGroups,
+                                         select=c(
+                                           "summary",
+                                                  "attacktype1"
+                                           ))
+  my_df.UK.AllGroups.SummaryAT = na.omit(my_df.UK.AllGroups.SummaryAT)
 @
 
 <<>>=
-uk.corpus <- buildCorpus(my_df.UK.AllGroups.SummaryAT$summary)
-uk.dtm <- TermDocumentMatrix(uk.corpus)
-uk.m <- as.matrix(uk.dtm)
-uk.v <- sort(rowSums(uk.m),decreasing=TRUE)
-uk.d <- data.frame(word = names(uk.v),freq=uk.v)
+  uk.corpus <- buildCorpus(my_df.UK.AllGroups.SummaryAT$summary)
+  uk.dtm <- TermDocumentMatrix(uk.corpus)
+  uk.m <- as.matrix(uk.dtm)
+  uk.v <- sort(rowSums(uk.m),
+               decreasing=TRUE)
+  uk.d <- data.frame(word = names(uk.v),
+                     freq=uk.v)
 @
 
 <<Wordcloud of UK common incident Words, eval=FALSE, echo=TRUE, dev='png'>>=
-uk.wordcloud=wordcloud2(uk.d, figPath = "Assets/uk.png", size = 1.5,color = "random-light")
-saveWidget(uk.wordcloud,"uk.html",selfcontained = F)
-webshot("uk.html","uk.pdf", delay =100, vwidth = 800, vheight=800)
+  uk.wordcloud=wordcloud2(uk.d,
+                          figPath = "Assets/uk.png",
+                          size = 1.5,
+                          color = "random-light")
 @
 
 
 
-
-
-
-<<Creates group ids from gname refrenced from frequency matrix, eval=FALSE>>=
-for (i in 1:which.max(my_df.AllGroups.freq$x)){
-  my_df.AllGroups.Known$groupid[my_df.AllGroups.Known$gname == my_df.AllGroups.freq$x[i]] <- i
-}
-my_df.AllGroups.Known$gname <- NULL
-my_df.AllGroups.Known$groupid <- as.numeric(my_df.AllGroups.Known$groupid)
-my_df.AllGroups.Known$groupid <- factor(my_df.AllGroups.Known$groupid)
-my_df.AllGroups.Known <- my_df.AllGroups.Known %>%
-  select(groupid, everything())
+<<echo=TRUE, eval=TRUE>>=
+  inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,
+                                 p=.7,
+                                 list=FALSE)
+  group.data.training <- my_df.AllGroups.Known[inTrain,]
+  group.data.testing <- my_df.AllGroups.Known[-inTrain,]
 @
 
-
-<<eval=TRUE>>=
-inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,p=.7,list=FALSE)
-group.data.training <- my_df.AllGroups.Known[inTrain,]
-# group.data.training.test <- group.data.training[1:100,]
-group.data.testing <- my_df.AllGroups.Known[-inTrain,]
-
-
-group.data.testing.gname <- as.data.frame(group.data.testing[,1])
-
+<<echo=TRUE, eval=TRUE>>=
+  nExecutor <- 12
 @
 
 
 
+<<Number of trees Effect Random Forest Accuracy, echo=TRUE, eval=FALSE>>=
+  trees.ntrees <- 100
+  # create dataframe to store accuracies and corresponding number of trees
+  trees.df <- data.frame(NTrees=as.numeric(),
+                         Accuracy=as.numeric())
+  # fit randomForest 10 times, and store the results
+  # vary number of trees in every iteration
+  
+  
+  for (i in 1:10){
+    trees.RFModel <- drandomForest(gname ~ .,
+                                   data=group.data.training,
+                                   mtry=4,
+                                   importance=TRUE,
+                                   na.action=na.omit,
+                                   completeModel=TRUE,
+                                   nExecutor = nExecutor,
+                                   ntree = trees.ntrees,
+                                   xtest=group.data.testing[,-1],
+                                   ytest=as.data.frame(group.data.testing[,1])
+                                   )
+    # Test the RF model for this run
+    trees.preds <- levels(group.data.training[,1])[trees.RFModel$test$predicted]
+    # compute accuracy
+    trees.auc <- (sum(trees.preds == group.data.testing[,1])/nrow(group.data.testing))*100
+    trees.df <- rbind(trees.df,
+                      data.frame(NTrees=trees.ntrees,Accuracy=trees.auc))
+    trees.ntrees <- trees.ntrees + 100
+  }# end for loop
+
+@
+
+<<Plot Random Forest Amount of Trees, echo=TRUE, eval=FALSE>>=
+  trees.accuracy.plot <- ggplot(trees.df,
+                                aes(
+                                  x=NTrees,
+                                  y=Accuracy
+                                  )
+                                )
+  trees.accuracy.plot <- trees.accuracy.plot + geom_line() + geom_point()
+  trees.accuracy.plot <- trees.accuracy.plot + xlim(100,trees.ntrees)
+  trees.accuracy.plot <- trees.accuracy.plot + theme_calc()
+  trees.accuracy.plot <- trees.accuracy.plot + scale_color_calc()
+  trees.accuracy.plot <- trees.accuracy.plot + ggtitle("Number of Trees vs Model Accuracy")
+  trees.accuracy.plot <- trees.accuracy.plot + xlab("NTrees (Number of Trees)")
+  trees.accuracy.plot <- trees.accuracy.plot + ylab("Accuracy (percentage %)")
+  trees.accuracy.plot <- trees.accuracy.plot + annotation_custom(xmin=-Inf,
+                                                                 ymin=-Inf,
+                                                                 xmax=Inf,
+                                                                 ymax=Inf,
+                                                                 rasterGrob(
+                                                                   watermark
+                                                                   )
+                                                                 )
+  trees.accuracy.plot
+@
 
 
-<<Random Forest Amount of Trees, echo=TRUE, eval=FALSE>>=
-set.seed(4205426)
-ntrees <- 20
-nExecutor <- 12
-# create dataframe to store accuracies and corresponding number of trees
-trees.df <- data.frame(NTrees=as.numeric(),
-Accuracy=as.numeric())
-# fit randomForest 10 times, and store the results
-# vary number of trees in every iteration
+<<Number of mtry Effect Random Forest Accuracy, echo=TRUE, eval=FALSE>>=
+  mtry.mtrys <- 1
+  # create dataframe to store accuracies and corresponding number of trees
+  mtry.df <- data.frame(NTrees=as.numeric(),
+                        Accuracy=as.numeric())
+  # fit randomForest 10 times, and store the results
+  # vary number of trees in every iteration
+  
+  
+  for (i in 1:5){
+    mtry.RFModel <- drandomForest(gname ~ .,
+                                  data=group.data.training,
+                                  mtry=mtry.mtrys,
+                                  importance=TRUE,
+                                  na.action=na.omit,
+                                  completeModel=TRUE,
+                                  nExecutor = nExecutor,
+                                  ntree = 100,
+                                  xtest=group.data.testing[,-1],
+                                  ytest=as.data.frame(group.data.testing[,1]))
+    # Test the RF model for this run
+    mtry.preds <- levels(group.data.training[,1])[mtry.RFModel$test$predicted]
+    # compute accuracy
+    mtry.auc <- (sum(mtry.preds == group.data.testing[,1])/nrow(group.data.testing))*100
+    mtry.df <- rbind(mtry.df,
+                     data.frame(Mtrys=mtry.mtrys, Accuracy=mtry.auc))
+    mtry.mtrys <- mtry.mtrys + 1
+  }# end for loop
+
+@
+
+<<Plot Random Forest Amount of MTRYS, echo=TRUE, eval=FALSE>>=
+  mtry.accuracy.plot <- ggplot(mtry.df,
+                               aes(x=Mtrys,
+                                   y=Accuracy))
+  mtry.accuracy.plot <- mtry.accuracy.plot + geom_line() + geom_point()
+  mtry.accuracy.plot <- mtry.accuracy.plot + xlim(1,mtry.mtrys)
+  mtry.accuracy.plot <- mtry.accuracy.plot + theme_calc()
+  mtry.accuracy.plot <- mtry.accuracy.plot + scale_color_calc()
+  mtry.accuracy.plot <- mtry.accuracy.plot + ggtitle("Number of Mtrys vs Model Accuracy")
+  mtry.accuracy.plot <- mtry.accuracy.plot + xlab("Mtrys (Number of Mtrys)")
+  mtry.accuracy.plot <- mtry.accuracy.plot + ylab("Accuracy (percentage %)")
+  mtry.accuracy.plot <- mtry.accuracy.plot + annotation_custom(xmin=-Inf,
+                                                               ymin=-Inf,
+                                                               xmax=Inf,
+                                                               ymax=Inf,
+                                                               rasterGrob(
+                                                                 watermark
+                                                                 )
+                                                               )
+  mtry.accuracy.plot
+@
 
 
-for (i in 1:10){
-  RFModel <- drandomForest(gname ~ ., data=group.data.training, mtry=4,
-importance=TRUE, na.action=na.omit,completeModel=TRUE, nExecutor = nExecutor, ntree = ntrees, xtest=group.data.testing[,-1], ytest=as.data.frame(group.data.testing[,1]))
-  # Test the RF model for this run
-  preds <- levels(group.data.training[,1])[RFModel$test$predicted]
+
+<<Create Final Prediction Random Forrest, echo=TRUE, eval=TRUE>>=
+  Final.RFModel <- drandomForest(gname ~ .,
+                                 data=group.data.training,
+                                 mtry=3,
+                                 importance=TRUE,
+                                 na.action=na.omit,
+                                 completeModel=TRUE,
+                                 nExecutor = nExecutor,
+                                 ntree = 200,
+                                 xtest=group.data.testing[,-1],
+                                 ytest=as.data.frame(group.data.testing[,1]))
+  
+  Final.preds <- levels(group.data.training[,1])[Final.RFModel$test$predicted]
   # compute accuracy
-  auc <- (sum(preds ==group.data.testing[,1])/nrow(group.data.testing))*100
-  trees.df <- rbind(trees.df, data.frame(NTrees=ntrees,Accuracy=auc))
-  ntrees <- ntrees + 20
-}# end for loop
-
-
+  Final.auc <- (sum(Final.preds == group.data.testing[,1])/nrow(group.data.testing))*100
 @
+
+<<Final Prediction Model Accuracy Output, echo=TRUE, eval=TRUE>>=
+  cat("Final model prediction accuracy:", Final.auc)
+  @
+  
+  
+  <<Predict Unknown Attacks using Final Prediction Model, echo=TRUE, eval=TRUE>>=
+  predictedUnknowns <- predict.drandomForest(Final.RFModel,
+                                             my_df.AllGroups.Unknown[,-1])
+  my_df.AllGroups.Unknown.Predicted <- cbind(gname=predictedUnknowns,
+                                             my_df.AllGroups.Unknown[,-1])
+@
+
+
+<<Create Bar Plot of all Predicted Terrorist Groups excl Other catagory, echo=TRUE, eval=TRUE>>=
+  my_df.predictedUnknowns.freq <- count(my_df.AllGroups.Unknown.Predicted$gname)
+  my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[!(my_df.predictedUnknowns.freq$x =="Other"), ]
+  my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[order(my_df.predictedUnknowns.freq$freq,
+                                                                     decreasing = T),]
+  my_df.predictedUnknowns.barplot<-ggplot(data=my_df.predictedUnknowns.freq,
+                                          aes(
+                                            x=x,
+                                            y=freq
+                                            )
+                                          ) 
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + geom_bar(stat="identity") 
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + coord_flip()
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + theme_igray()
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + scale_colour_tableau()
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + ggtitle("Predicted Terrorist Groups and corrisponding Attacks")
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + xlab("Terorist Group (Name)")
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + ylab("Quantity of Predicted Incidents (incidents)")
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + annotation_custom(xmin=-Inf,
+                                                                                         ymin=-Inf,
+                                                                                         xmax=Inf,
+                                                                                         ymax=Inf,
+                                                                                         rasterGrob(
+                                                                                           watermark
+                                                                                           )
+                                                                                         )
+  my_df.predictedUnknowns.barplot
+@
+
+<<Output Final Model Results, echo=FALSE, eval=TRUE>>=
+  cat("Quantity of Unknown Terrorist attacks predicted:",
+      nrow(my_df.AllGroups.Unknown.Predicted),
+      "attacks.")
+  cat("Quantity of Unknown Terrorist attacks predicted (Removing Other):",
+      nrow(my_df.AllGroups.Unknown.Predicted[!(my_df.AllGroups.Unknown.Predicted$gname =="Other"), ]),
+      "attacks.")
+@
+
 
 
 \subsection{Another subtitle}
