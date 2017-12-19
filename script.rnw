@@ -60,7 +60,12 @@
   
     For the last decade, Terrorist Incidents have been perceived to be on the rise. Every time you turn on the TV and watch the evening news, you are presented with a new headline from a new city that has been struck by a horrific event. What this Big Data module has taught me is that the art of analyzing and visualizing data is an act of telling a story to a viewer. My aim for this report, is to see if the stories that we are told, about the state of Global Terrorism, are as damning as we are led to believe.\par If this is the case, who are the main players? Do groups perform terrorism on a global scale? What does terrorism look like, and can we predict who does it?
     
-    \vspace{4cm}
+    \vspace{2cm}
+    
+    \subsection{Haddop}
+      Haddop may have been appropriate as a dataset of my size would have benefited from more aspects of distributed computing. I produced my random tree using the drandomForest package that makes R run in a multithreaded workload. This however is only for one aspect of my script, and my compiling time could have been reduced if I could have distributed the load.
+    
+    \vspace{2cm}
   
   \subsection{Citing Sources}
   \label{ssec:Citing Source}
@@ -125,7 +130,7 @@
   
     We will set the seed of the script to a specific number so that our results can be repeatable and consistent.
     
-    <<Setting Document Seed for repetable results, echo=TRUE, eval=FALSE>>=
+    <<Setting Document Seed for repetable results, echo=TRUE, eval=TRUE>>=
       set.seed(4205426)
     @
     
@@ -534,7 +539,7 @@
       
     \subsubsection{UK - Create Summary Dataframe}
       Now we have this data singled out, we can go ahead and start to create a dataframe that only has UK Summary information. We will once again need to make sure that this data has no null values and  is a full dataframe with Summary information.\par This time, instead of comparing records and manually replacing them with null entries, we can make use of the na.omit function that omits null entries in a dataframe. 
-      <<Create a subset of UK summary informaction, echo=TRUE, eval=FALSE>>=
+      <<Create a subset of UK summary informaction, echo=TRUE, eval=TRUE>>=
         my_df.UK.AllGroups.Summary <- my_df.UK.AllGroups$summary
         my_df.UK.AllGroups.Summary = na.omit(my_df.UK.AllGroups.Summary)
       @
@@ -587,89 +592,528 @@
         
         
         The repeat of the word 'Fire' in both wordclouds seemed interesting to me. It may be because, as we noticed earlier, due to Armed Assault being the second most common terrorist attack type. It may also be because the word 'Fire' can have multiple uses, such as to describe a blaze, or to use a rifle.\par An interesting difference I noticed is that the word 'bomb' is one of the most popular words used to describe terrorist incidents globally, compared to the UK which uses the plural 'bombs' more frequently. This may suggest that the use of more than one explosive device is more common in UK terror attacks vs the terror attacks that happen on a global scale.
+        
+        \clearpage
+        \pagebreak
+        
+  \subsection{Terrorist Groups and Bar Plots}
+  
+    \subsubsection{Preparing our Global Data}
+
+      <<Count group attack occurences and plot, echo=TRUE, eval=TRUE>>=
+        my_df.AllGroups.freq <- count(my_df$gname)
+        my_df.AllGroups.freq <- my_df.AllGroups.freq[!(my_df.AllGroups.freq$x =="Unknown"), ]
+        my_df.number.of.groups <- my_df.AllGroups.freq[order(my_df.AllGroups.freq$freq,
+                                                             decreasing = T),]
+      @
+    
+    \subsubsection{Plotting Global Terrorist Group Activity}
+
+      <<Plot Group Attack Occurences,eval=TRUE,echo=TRUE>>=
+        my_df.group.barplot <- ggplot(data=my_df.number.of.groups[1:10,],
+                                      aes(
+                                        x=x,
+                                        y=freq
+                                        )
+                                      ) 
+        my_df.group.barplot <- my_df.group.barplot + 
+          geom_bar(stat="identity")
+        my_df.group.barplot <- my_df.group.barplot + 
+          coord_flip()
+        my_df.group.barplot <- my_df.group.barplot + 
+          theme_igray()
+        my_df.group.barplot <- my_df.group.barplot + 
+          scale_colour_tableau()
+        my_df.group.barplot <- my_df.group.barplot + 
+          ggtitle("Global Terrorist Group Attacks")
+        my_df.group.barplot <- my_df.group.barplot + 
+          xlab("Terorist Group (Name)")
+        my_df.group.barplot <- my_df.group.barplot + 
+          ylab("Quantity of Incidents (incidents)")
+      @
+      
+      
+      <<Global group watermark,eval=TRUE,echo=FALSE>>=
+        my_df.group.barplot <- my_df.group.barplot + 
+          annotation_custom(xmin=-Inf,
+                            ymin=-Inf,
+                            xmax=Inf,
+                            ymax=Inf,
+                            rasterGrob(
+                              watermark
+                              )
+                            )
+      @
+      
+      \pagebreak
+      
+      \begin{figure}
+        <<Global group plot,eval=TRUE,echo=FALSE>>=
+          my_df.group.barplot
+        @
+        \begin{center}
+          \caption{Bar Plot: Bar Plot of Global Terrorist Group Activities, using ggplot2}
+        \end{center}
+        \label{fig:groupActivities}
+      \end{figure}
+      
+      \clearpage
+      
+      \pagebreak
+      
+      
+    
+      
+      
+    \subsubsection{Preparing our UK Data}
+    
+      \small
+      <<Count UK group attack occurences, echo=TRUE, eval=TRUE>>=
+        my_df.UK.AllGroups.freq <-count(my_df.UK.AllGroups$gname)
+        my_df.UK.AllGroups.freq <-my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x=="Unknown"), ]
+        my_df.uk.number.of.groups <-my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq,
+                                                                   decreasing = T),]
+      @
+      \normalsize
+      
+    \subsubsection{Plotting UK Terrorist Group Activity}
+    
+      <<Make Attack Occurences plot,eval=TRUE,echo=TRUE>>=
+        my_df.uk.group.barplot<- ggplot(data=my_df.uk.number.of.groups[1:10,],
+                                          aes(
+                                            x=x,
+                                            y=freq
+                                            )
+                                          ) 
+        my_df.uk.group.barplot <- my_df.uk.group.barplot +
+          geom_bar(stat="identity") 
+        my_df.uk.group.barplot <- my_df.uk.group.barplot +
+          coord_flip()
+        my_df.uk.group.barplot <- my_df.uk.group.barplot +
+          theme_igray()
+        my_df.uk.group.barplot <- my_df.uk.group.barplot +
+          scale_colour_tableau()
+        my_df.uk.group.barplot <- my_df.uk.group.barplot +
+          ggtitle("United Kingdom Terrorist Group Attacks")
+        my_df.uk.group.barplot <- my_df.uk.group.barplot +
+          xlab("Terorist Group (Name)")
+        my_df.uk.group.barplot <- my_df.uk.group.barplot +
+          ylab("Quantity of Incidents (incidents)")
+      @
+      
+      
+      <<UK GROUP PLOT WATERMARK,eval=TRUE,echo=FALSE>>=
+        my_df.uk.group.barplot <- my_df.uk.group.barplot + annotation_custom(xmin=-Inf,
+                                                                             ymin=-Inf,
+                                                                             xmax=Inf,
+                                                                             ymax=Inf,
+                                                                             rasterGrob(
+                                                                               watermark
+                                                                               )
+                                                                             )
+      
+      @
+      
+      
+      
+      
+      \pagebreak
+      
+      \begin{figure}
+        <<Uk Group plot,eval=TRUE,echo=FALSE>>=
+          my_df.uk.group.barplot
+        @
+        \begin{center}
+          \caption{Bar Plot: Bar Plot of UK Terrorist Group Activities, using ggplot2}
+        \end{center}
+        \label{fig:UKgroupActivities}
+      \end{figure}
+      
+      \clearpage
+      
+      \pagebreak
+      
+      
       
       
 \section{Random Forest and Predictions}
 \label{sec:RFPredictions}
 
-\small
-<<AllGroup Known and Unknown Dataset creation, echo=TRUE, eval=FALSE>>=
-  my_df.AllGroups <- subset(my_df,
-                            select=c(
-                              "gname",
-                              "region",
-                              "nkill",
-                              "attacktype1",
-                              "success",
-                              "weaptype1",
-                              "iday",
-                              "iyear",
-                              "imonth",
-                              "targtype1")
-                            )
+  \subsection{Our Prediction}
+  \label{ssec:OurPrediction}
+    
+    What I'm wanting to predict with my Prediction Model is the group name of a terrorist group, given a number of features about the attack they performed.
+    
+  \subsection{Our Method}
+  \label{ssec:OurMethod}
   
-  my_df.AllGroups$gname <- factor(my_df.AllGroups$gname)
+    We will use Random Forrest to perform Our predictions.
+    
+    
+  \subsection{Creating and Preparing a subset}
+  \label{ssec:CreatePrepareSubset}
+    
+    We need to create a subset of data with the values that we wish to make our prediction from. I have chosen a set of values such as Region, number of people killed, the attack type, if the attack was successful, the main weapon used in the attack, the day of the attack, the month of the attack, the year of the attack, the target that they were attacking.
   
-  
-  my_df.AllGroups$gname <- fct_lump(my_df.AllGroups$gname,
-                                    n = 30)
-  
-  my_df.AllGroups$gname <- str_replace_all(my_df.AllGroups$gname,
-                                           "[^[:alnum:]]",
-                                           " ")
-  
-  my_df.AllGroups=na.omit(my_df.AllGroups)
-  
-  my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname=="Unknown"), ]
-  
-  my_df.AllGroups.Unknown <- my_df.AllGroups[(my_df.AllGroups$gname=="Unknown"), ]
-  
-  my_df.AllGroups.Known$gname <-factor(my_df.AllGroups.Known$gname)
-  my_df.AllGroups.Known$nkill <-as.numeric(my_df.AllGroups.Known$nkill)
-  my_df.AllGroups.Known$region <-factor(my_df.AllGroups.Known$region)
-  my_df.AllGroups.Known$success <-factor(my_df.AllGroups.Known$success)
-  my_df.AllGroups.Known$attacktype1 <-factor(my_df.AllGroups.Known$attacktype1)
-  my_df.AllGroups.Known$weaptype1 <-factor(my_df.AllGroups.Known$weaptype1)
+    \subsubsection{Create Subset}
+    To create this subset, we will make use of the subset command and then partion the data from our main dataframe into our new data frame
+      <<AllGroup subset Data Creation,eval=TRUE,echo=TRUE>>=
+        my_df.AllGroups <- subset(my_df,
+                                  select=c(
+                                    "gname",
+                                    "region",
+                                    "nkill",
+                                    "attacktype1",
+                                    "success",
+                                    "weaptype1",
+                                    "iday",
+                                    "iyear",
+                                    "imonth",
+                                    "targtype1")
+                                  )
+      @
   
   
-  my_df.AllGroups.Unknown$gname <-factor(my_df.AllGroups.Unknown$gname)
-  my_df.AllGroups.Unknown$nkill <-as.numeric(my_df.AllGroups.Unknown$nkill)
-  my_df.AllGroups.Unknown$region <-factor(my_df.AllGroups.Unknown$region)
-  my_df.AllGroups.Unknown$success <-factor(my_df.AllGroups.Unknown$success)
-  my_df.AllGroups.Unknown$attacktype1 <-factor(my_df.AllGroups.Unknown$attacktype1)
-  my_df.AllGroups.Unknown$weaptype1 <-factor(my_df.AllGroups.Unknown$weaptype1)
+    \subsubsection{Omitting Null Values}
+      Once we have all the data we wish to use in our model, we need to remove any null values to make sure that our dataset is feature complete. We will not be able to run a random forest if we have any missing information.\par To do this, we will make use of the na omit function again.
+      <<AllGroup get rid of null values,eval=TRUE,echo=TRUE>>=
+        my_df.AllGroups=na.omit(my_df.AllGroups)
+      @
+      
+    \subsubsection{Creating and Limiting our Predicting Factor}
+      A factor is a variable that has only a certain amount of pre-defined options. A group name is a factor as there are only a certain amount of terrorist groups in our dataset, and the purpose of our prediction is not to predict new terrorist groups that don't exist!\par We will have to limit the amount of factors our dataset has, which is a shame. This will meant that our prediction model will only be able to calculate the top 30 terrorist groups. This is because there is a limitation in random forest that a factor cannot have more than 31 different values.\par To be able to create only 30 factors in our dataset, we will make use of the tidyverse package and the fctlump function. This will allow us to retain 30 factors in our set and change the rest of the group names to Other.
+      <<AllGroup Make gname Factor and limit to 30 groups,eval=TRUE,echo=TRUE>>=
+        my_df.AllGroups$gname <- factor(my_df.AllGroups$gname)
+        my_df.AllGroups$gname <- fct_lump(my_df.AllGroups$gname,
+                                          n = 30)
+      @
+      
+    \subsubsection{Sanitizing Group Name}
+      We will make use of a Regular Expression to remove symbols and strange characters from group names. This will aid the accuracy of the model.
+      <<AllGroup RegEX symbols w spaces,eval=TRUE,echo=TRUE>>=
+        my_df.AllGroups$gname <- str_replace_all(my_df.AllGroups$gname,
+                                               "[^[:alnum:]]",
+                                               " ")
+      @
+      
+    \subsubsection{Partitioning Unknown and Known Groups}
+      Once our data has past many forms of sterilization, we will now partion our set to Known and Unknown Group names. We will want to Train our prediction model on Known group attacks and once we are confident about its accuracy, we will then attempt to predict the Unknown terrorist attacks.
+      \small
+      <<AllGroup Known and Unknown Dataset Creation,eval=TRUE,echo=TRUE>>=
+        my_df.AllGroups.Known <- my_df.AllGroups[!(my_df.AllGroups$gname=="Unknown"), ]
+        my_df.AllGroups.Unknown <- my_df.AllGroups[(my_df.AllGroups$gname=="Unknown"), ]
+      @
+      \normalsize
+      
+    \subsubsection{Creating Known and Unknown Factors}
+      We will now look at our data and see what information can be made into factors. This is to make sure that our dataset knows what values are predefined, and aids accuracy of our model.
+      \small
+      <<AllGroup Known Factors,eval=TRUE,echo=TRUE>>=
+        my_df.AllGroups.Known$gname <-factor(my_df.AllGroups.Known$gname)
+        my_df.AllGroups.Known$nkill <-as.numeric(my_df.AllGroups.Known$nkill)
+        my_df.AllGroups.Known$region <-factor(my_df.AllGroups.Known$region)
+        my_df.AllGroups.Known$success <-factor(my_df.AllGroups.Known$success)
+        my_df.AllGroups.Known$attacktype1 <-factor(my_df.AllGroups.Known$attacktype1)
+        my_df.AllGroups.Known$weaptype1 <-factor(my_df.AllGroups.Known$weaptype1)
+      @
+      \normalsize
+      
+      \small
+      <<AllGroup Unknown Factors, echo=TRUE, eval=TRUE>>=
+        my_df.AllGroups.Unknown$gname <-factor(my_df.AllGroups.Unknown$gname)
+        my_df.AllGroups.Unknown$nkill <-as.numeric(my_df.AllGroups.Unknown$nkill)
+        my_df.AllGroups.Unknown$region <-factor(my_df.AllGroups.Unknown$region)
+        my_df.AllGroups.Unknown$success <-factor(my_df.AllGroups.Unknown$success)
+        my_df.AllGroups.Unknown$attacktype1 <-factor(my_df.AllGroups.Unknown$attacktype1)
+        my_df.AllGroups.Unknown$weaptype1 <-factor(my_df.AllGroups.Unknown$weaptype1)
+      @
+      \normalsize
+      
+    \subsubsection{Creating Test and Training Sets}
+      We will now partition our Known Groups data set into training and testing Data frames. This is done making use of the creatDataPartion Command and we can specify that the split will be 70 percent Training, 30 percent testing.
+      <<Create Training and Testing Set of Group data, , echo=TRUE, eval=TRUE>>=
+        inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,
+                                       p=.7,
+                                       list=FALSE)
+        group.data.training <- my_df.AllGroups.Known[inTrain,]
+        group.data.testing <- my_df.AllGroups.Known[-inTrain,]
+      @
+      
+      
+      \subsection{Factors that Manipulate Model Accuracy}
+      \label{ssec:FactorsModelAccuracy}
+      
+        \subsubsection{Number of Trees vs Model Accuracy}
+          We will now explore areas that we can manipulate about our model and change settings on how our Random forest is generated. The amount of trees we generate can change the accuracy of our model, depending on our dataset. We will specify that our amount of trees will start at 100, then we will loop 10 times, increment our tree value 100 each time. We will take notes of our model accuracy, comparing it with our testing data and saving this information in a data frame for us to plot later.
+          <<Number of trees Effect Random Forest Accuracy, echo=TRUE, eval=TRUE>>=
+            trees.ntrees <- 100
+            # create dataframe to store accuracies and corresponding number of trees
+            trees.df <- data.frame(NTrees=as.numeric(),
+                                   Accuracy=as.numeric())
+            # fit randomForest 10 times, and store the results
+            # vary number of trees in every iteration
+            
+            
+            for (i in 1:10){
+              trees.RFModel <- drandomForest(gname ~ .,
+                                             data=group.data.training,
+                                             mtry=4,
+                                             importance=TRUE,
+                                             na.action=na.omit,
+                                             completeModel=TRUE,
+                                             nExecutor = nExecutor,
+                                             ntree = trees.ntrees,
+                                             xtest=group.data.testing[,-1],
+                                             ytest=as.data.frame(group.data.testing[,1])
+                                             )
+              # Test the RF model for this run
+              trees.preds <- levels(group.data.training[,1])[trees.RFModel$test$predicted]
+              # compute accuracy
+              trees.auc <- (sum(trees.preds == group.data.testing[,1])/nrow(group.data.testing))*100
+              trees.df <- rbind(trees.df,
+                                data.frame(
+                                  NTrees=trees.ntrees,
+                                  Accuracy=trees.auc
+                                  )
+                                )
+              trees.ntrees <- trees.ntrees + 100
+            }# end for loop
+          
+          @
+          
+        \subsubsection{Plot Number of Trees vs Model Accuracy}
+          We will now plot our Number of trees, once again, making use of ggplot 2.
+          <<Plot Random Forest Amount of Trees, echo=TRUE, eval=TRUE>>=
+            trees.accuracy.plot <- ggplot(trees.df,
+                                          aes(
+                                            x=NTrees,
+                                            y=Accuracy
+                                            )
+                                          )
+            trees.accuracy.plot <- trees.accuracy.plot +
+              geom_line() + geom_point()
+            trees.accuracy.plot <- trees.accuracy.plot +
+              xlim(100,trees.ntrees)
+            trees.accuracy.plot <- trees.accuracy.plot +
+              theme_calc()
+            trees.accuracy.plot <- trees.accuracy.plot +
+              scale_color_calc()
+            trees.accuracy.plot <- trees.accuracy.plot +
+              ggtitle("Number of Trees vs Model Accuracy")
+            trees.accuracy.plot <- trees.accuracy.plot +
+              xlab("NTrees (Number of Trees)")
+            trees.accuracy.plot <- trees.accuracy.plot +
+              ylab("Accuracy (percentage %)")
+          @
+          
+          <<Trees plot Watermark,eval=TRUE,echo=FALSE>>=
+          trees.accuracy.plot <- trees.accuracy.plot +
+              annotation_custom(xmin=-Inf,
+                                ymin=-Inf,
+                                xmax=Inf,
+                                ymax=Inf,
+                                rasterGrob(
+                                  watermark
+                                  )
+                                )
+          @
+          
+          \pagebreak
+      
+          \begin{figure}
+            <<Trees plot,eval=TRUE,echo=FALSE>>=
+              trees.accuracy.plot
+            @
+            \begin{center}
+              \caption{Bar Plot: Bar Plot of nTree Accuracy when nTree incremented in value, using ggplot2}
+            \end{center}
+            \label{fig:ntreeAccuracy}
+          \end{figure}
+          
+          \clearpage
+          
+          \pagebreak
+          
+          <<nTree predictions to table, eval=TRUE, echo=FALSE, results="asis">>=
+            print(xtable(trees.df,
+                    caption="nTree Manipulation to see effect on Accuracy"))
+            @
+          
+          The result of our test shows that the amount of trees that we use to make our prediction model with makes no preciveable difference to the accuracy. The lowest amount of trees in the graph could be argued to show worse accuracy, but these values are represented at a fraction of a percent.\par The disadvantage to using a large amount of trees in a prediction model the amount of time it takes for the model to be created. 
+          
+          
+          
+          
+        \subsubsection{Number of mTry vs Model Accuracy}
+          We will now see if the number of variables available for splitting at each node, the mTry value,  will make a difference in accuracy when incremented through stages from the value of 1, to the value of 5. We will use the same code as our last experiment, but instead of manipulating the nTree value, we will manipulate and observe the mTry Value.
+          <<Number of mtry Effect Random Forest Accuracy, echo=TRUE, eval=TRUE>>=
+            mtry.mtrys <- 1
+            # create dataframe to store accuracies and corresponding number of trees
+            mtry.df <- data.frame(NTrees=as.numeric(),
+                                  Accuracy=as.numeric())
+            # fit randomForest 10 times, and store the results
+            # vary number of trees in every iteration
+            
+            
+            for (i in 1:5){
+              mtry.RFModel <- drandomForest(gname ~ .,
+                                            data=group.data.training,
+                                            mtry=mtry.mtrys,
+                                            importance=TRUE,
+                                            na.action=na.omit,
+                                            completeModel=TRUE,
+                                            nExecutor = nExecutor,
+                                            ntree = 100,
+                                            xtest=group.data.testing[,-1],
+                                            ytest=as.data.frame(group.data.testing[,1]))
+              # Test the RF model for this run
+              mtry.preds <- levels(group.data.training[,1])[mtry.RFModel$test$predicted]
+              # compute accuracy
+              mtry.auc <- (sum(mtry.preds == group.data.testing[,1])/nrow(group.data.testing))*100
+              mtry.df <- rbind(mtry.df,
+                               data.frame(
+                                 Mtrys=mtry.mtrys,
+                                 Accuracy=mtry.auc
+                                 )
+                               )
+              mtry.mtrys <- mtry.mtrys + 1
+            }# end for loop
+          
+          @
+          
+      \subsubsection{Plot Number of mTry vs Model Accuracy}
+        Once we have gathered results, we will now plot a graph and see what our results come out at.
+        <<Plot Random Forest Amount of MTRYS, echo=TRUE, eval=TRUE>>=
+          mtry.accuracy.plot <- ggplot(mtry.df,
+                                       aes(x=Mtrys,
+                                           y=Accuracy))
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            geom_line() + geom_point()
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            xlim(1,mtry.mtrys)
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            theme_calc()
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            scale_color_calc()
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            ggtitle("Number of Mtrys vs Model Accuracy")
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            xlab("Mtrys (Number of Mtrys)")
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            ylab("Accuracy (percentage %)")
+        @
+        
+        <<mtry plot watermark,eval=TRUE,echo=FALSE>>=
+          mtry.accuracy.plot <- mtry.accuracy.plot +
+            annotation_custom(xmin=-Inf,
+                              ymin=-Inf,
+                              xmax=Inf,
+                              ymax=Inf,
+                              rasterGrob(
+                                watermark
+                                )
+                              )
+        @
+        
+        
+        \pagebreak
+      
+          \begin{figure}
+            <<mTry plot,eval=TRUE,echo=FALSE>>=
+              mtry.accuracy.plot
+            @
+            \begin{center}
+              \caption{Bar Plot: Bar Plot of mTry Accuracy when mTry incremented in value, using ggplot2}
+            \end{center}
+            \label{fig:mtryAccuracy}
+          \end{figure}
+          
+          \clearpage
+          
+          \pagebreak
 
+        <<mTry predictions to table, eval=TRUE, echo=FALSE, results="asis">>=
+          print(xtable(mtry.df,
+                  caption="nTree Manipulation to see effect on Accuracy"))
+        @
+        
+        As we can see, the quantity of mtry has a curve that saturates at a certain point, meaning that the model does not become more accurate with the increase of the number of variables available for splitting at each tree node. 
+        
+    \subsection{Creating Our Prediction Model}
+    \label{ssec:CreatePredictionModel}
+    
+      \subsubsection{Creating the Model}
+        Now we have made observations on how to improve the accuracy of our model, we will put this into practice and make predictions where groupname has an Unknown value.\par We will create our Random Tree with 200 trees and the value for mtry will be 3.  
+        \small
+        <<Create Final Prediction Random Forrest, echo=TRUE, eval=TRUE>>=
+          Final.RFModel <- drandomForest(gname ~ .,
+                                         data=group.data.training,
+                                         mtry=3,
+                                         importance=TRUE,
+                                         na.action=na.omit,
+                                         completeModel=TRUE,
+                                         nExecutor = nExecutor,
+                                         ntree = 200,
+                                         xtest=group.data.testing[,-1],
+                                         ytest=as.data.frame(group.data.testing[,1]))
+          
+          Final.preds <- levels(group.data.training[,1])[Final.RFModel$test$predicted]
+          # compute accuracy
+          Final.auc <- (sum(Final.preds == group.data.testing[,1])/nrow(group.data.testing))*100
+        @
+        \normalsize
+        
+        
+      \subsubsection{Our Final Model Accuracy}
+        <<Final Prediction Model Accuracy Output, echo=TRUE, eval=TRUE>>=
+          cat("Final model prediction accuracy:", Final.auc)
+        @
+
+  
+<<Predict Unknown Attacks using Final Prediction Model, echo=TRUE, eval=TRUE>>=
+  predictedUnknowns <- predict.drandomForest(Final.RFModel,
+                                             my_df.AllGroups.Unknown[,-1])
+  my_df.AllGroups.Unknown.Predicted <- cbind(gname=predictedUnknowns,
+                                             my_df.AllGroups.Unknown[,-1])
+@
+
+
+\small
+<<Predicted Terrroist Groups excl Other catagory,eval=TRUE,echo=TRUE>>=
+  my_df.predictedUnknowns.freq <- count(my_df.AllGroups.Unknown.Predicted$gname)
+  my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[!(my_df.predictedUnknowns.freq$x =="Other"), ]
+  my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[order(my_df.predictedUnknowns.freq$freq,
+                                                                     decreasing = T),]
 @
 \normalsize
-<<Count group attack occurences and plot, echo=TRUE, eval=FALSE>>=
-  my_df.AllGroups.freq <- count(my_df$gname)
-  my_df.AllGroups.freq <- my_df.AllGroups.freq[!(my_df.AllGroups.freq$x =="Unknown"), ]
-  my_df.number.of.groups <- my_df.AllGroups.freq[order(my_df.AllGroups.freq$freq,
-                                                       decreasing = T),]
-  my_df.group.barplot <- ggplot(data=my_df.number.of.groups[1:10,],
-                                aes(
-                                  x=x,
-                                  y=freq
-                                  )
-                                ) 
-  my_df.group.barplot <- my_df.group.barplot + 
-    geom_bar(stat="identity")
-  my_df.group.barplot <- my_df.group.barplot + 
+
+<<Create Bar Plot of all Predicted Terrorist Groups , echo=TRUE, eval=TRUE>>=
+  my_df.predictedUnknowns.barplot<-ggplot(data=my_df.predictedUnknowns.freq,
+                                          aes(
+                                            x=x,
+                                            y=freq
+                                            )
+                                          ) 
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
+    geom_bar(stat="identity") 
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
     coord_flip()
-  my_df.group.barplot <- my_df.group.barplot + 
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
     theme_igray()
-  my_df.group.barplot <- my_df.group.barplot + 
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
     scale_colour_tableau()
-  my_df.group.barplot <- my_df.group.barplot + 
-    ggtitle("Global Terrorist Group Attacks")
-  my_df.group.barplot <- my_df.group.barplot + 
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
+    ggtitle("Predicted Terrorist Groups and corrisponding Attacks")
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
     xlab("Terorist Group (Name)")
-  my_df.group.barplot <- my_df.group.barplot + 
-    ylab("Quantity of Incidents (incidents)")
+  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
+    ylab("Quantity of Predicted Incidents (incidents)")
 @
 
-<<Global group watermark,eval=TRUE,echo=FALSE>>=
-  my_df.group.barplot <- my_df.group.barplot + 
+
+
+<<Predicted Terrorist Watermark plot,eval=TRUE, echo=FALSE>>=
+my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot +
     annotation_custom(xmin=-Inf,
                       ymin=-Inf,
                       xmax=Inf,
@@ -680,294 +1124,38 @@
                       )
 @
 
-<<Global group plot,eval=TRUE,echo=FALSE>>=
-  my_df.group.barplot
-@
+        
+        \pagebreak
+      
+          \begin{figure}
+            <<Predicted Terrorist plot,eval=TRUE,echo=FALSE>>=
+              my_df.predictedUnknowns.barplot
+            @
+            \begin{center}
+              \caption{Bar Plot: Bar Plot of predicted Terrorist Groups, using ggplot2}
+            \end{center}
+            \label{fig:predictedTerroristUnknown}
+          \end{figure}
+          
+          \clearpage
+          
+          \pagebreak
+          
+          
+          <<my_df.predictedUnknowns.freq predictions to table, eval=TRUE, echo=FALSE, results="asis">>=
+            print(xtable(my_df.predictedUnknowns.freq,
+                    caption="Frequency Table of Predicted Terrorist Groups"))
+          @
+          
 
 
 
-\small
-<<Count UK group attack occurences, echo=TRUE, eval=FALSE>>=
-  my_df.UK.AllGroups.freq <-count(my_df.UK.AllGroups$gname)
-  my_df.UK.AllGroups.freq <-my_df.UK.AllGroups.freq[!(my_df.UK.AllGroups.freq$x=="Unknown"), ]
-  my_df.uk.number.of.groups <-my_df.UK.AllGroups.freq[order(my_df.UK.AllGroups.freq$freq,
-                                                             decreasing = T),]
-@
-\normalsize
-
-<<Make Attack Occurences plot,eval=TRUE,echo=TRUE>>=
-  my_df.uk.group.barplot<- ggplot(data=my_df.uk.number.of.groups[1:10,],
-                                    aes(
-                                      x=x,
-                                      y=freq
-                                      )
-                                    ) 
-  my_df.uk.group.barplot <- my_df.uk.group.barplot +
-    geom_bar(stat="identity") 
-  my_df.uk.group.barplot <- my_df.uk.group.barplot +
-    coord_flip()
-  my_df.uk.group.barplot <- my_df.uk.group.barplot +
-    theme_igray()
-  my_df.uk.group.barplot <- my_df.uk.group.barplot +
-    scale_colour_tableau()
-  my_df.uk.group.barplot <- my_df.uk.group.barplot +
-    ggtitle("United Kingdom Terrorist Group Attacks")
-  my_df.uk.group.barplot <- my_df.uk.group.barplot +
-    xlab("Terorist Group (Name)")
-  my_df.uk.group.barplot <- my_df.uk.group.barplot +
-    ylab("Quantity of Incidents (incidents)")
-@
-
-
-
-<<UK GROUP PLOT WATERMARK,eval=TRUE,echo=FALSE>>=
-  my_df.uk.group.barplot <- my_df.uk.group.barplot + annotation_custom(xmin=-Inf,
-                                                                       ymin=-Inf,
-                                                                       xmax=Inf,
-                                                                       ymax=Inf,
-                                                                       rasterGrob(
-                                                                         watermark
-                                                                         )
-                                                                       )
-
-@
-
-<<Uk Group plot,eval=TRUE,echo=FALSE>>=
-  my_df.uk.group.barplot
-@
-
-
-
-
-
-<<Create Training and Testing Set of Group data, , echo=TRUE, eval=FALSE>>=
-  inTrain <- createDataPartition(y=my_df.AllGroups.Known$gname,
-                                 p=.7,
-                                 list=FALSE)
-  group.data.training <- my_df.AllGroups.Known[inTrain,]
-  group.data.testing <- my_df.AllGroups.Known[-inTrain,]
-@
-
-
-
-
-<<Number of trees Effect Random Forest Accuracy, echo=TRUE, eval=FALSE>>=
-  trees.ntrees <- 100
-  # create dataframe to store accuracies and corresponding number of trees
-  trees.df <- data.frame(NTrees=as.numeric(),
-                         Accuracy=as.numeric())
-  # fit randomForest 10 times, and store the results
-  # vary number of trees in every iteration
-  
-  
-  for (i in 1:10){
-    trees.RFModel <- drandomForest(gname ~ .,
-                                   data=group.data.training,
-                                   mtry=4,
-                                   importance=TRUE,
-                                   na.action=na.omit,
-                                   completeModel=TRUE,
-                                   nExecutor = nExecutor,
-                                   ntree = trees.ntrees,
-                                   xtest=group.data.testing[,-1],
-                                   ytest=as.data.frame(group.data.testing[,1])
-                                   )
-    # Test the RF model for this run
-    trees.preds <- levels(group.data.training[,1])[trees.RFModel$test$predicted]
-    # compute accuracy
-    trees.auc <- (sum(trees.preds == group.data.testing[,1])/nrow(group.data.testing))*100
-    trees.df <- rbind(trees.df,
-                      data.frame(
-                        NTrees=trees.ntrees,
-                        Accuracy=trees.auc
-                        )
-                      )
-    trees.ntrees <- trees.ntrees + 100
-  }# end for loop
-
-@
-
-<<Plot Random Forest Amount of Trees, echo=TRUE, eval=FALSE>>=
-  trees.accuracy.plot <- ggplot(trees.df,
-                                aes(
-                                  x=NTrees,
-                                  y=Accuracy
-                                  )
-                                )
-  trees.accuracy.plot <- trees.accuracy.plot +
-    geom_line() + geom_point()
-  trees.accuracy.plot <- trees.accuracy.plot +
-    xlim(100,trees.ntrees)
-  trees.accuracy.plot <- trees.accuracy.plot +
-    theme_calc()
-  trees.accuracy.plot <- trees.accuracy.plot +
-    scale_color_calc()
-  trees.accuracy.plot <- trees.accuracy.plot +
-    ggtitle("Number of Trees vs Model Accuracy")
-  trees.accuracy.plot <- trees.accuracy.plot +
-    xlab("NTrees (Number of Trees)")
-  trees.accuracy.plot <- trees.accuracy.plot +
-    ylab("Accuracy (percentage %)")
-@
-
-<<Trees plot Watermark,eval=TRUE,echo=FALSE>>=
-trees.accuracy.plot <- trees.accuracy.plot + annotation_custom(xmin=-Inf,
-                                                                 ymin=-Inf,
-                                                                 xmax=Inf,
-                                                                 ymax=Inf,
-                                                                 rasterGrob(
-                                                                   watermark
-                                                                   )
-                                                                 )
-@
-
-<<Trees plot,eval=TRUE,echo=FALSE>>=
-  trees.accuracy.plot
-@
-
-
-
-
-<<Number of mtry Effect Random Forest Accuracy, echo=TRUE, eval=FALSE>>=
-  mtry.mtrys <- 1
-  # create dataframe to store accuracies and corresponding number of trees
-  mtry.df <- data.frame(NTrees=as.numeric(),
-                        Accuracy=as.numeric())
-  # fit randomForest 10 times, and store the results
-  # vary number of trees in every iteration
-  
-  
-  for (i in 1:5){
-    mtry.RFModel <- drandomForest(gname ~ .,
-                                  data=group.data.training,
-                                  mtry=mtry.mtrys,
-                                  importance=TRUE,
-                                  na.action=na.omit,
-                                  completeModel=TRUE,
-                                  nExecutor = nExecutor,
-                                  ntree = 100,
-                                  xtest=group.data.testing[,-1],
-                                  ytest=as.data.frame(group.data.testing[,1]))
-    # Test the RF model for this run
-    mtry.preds <- levels(group.data.training[,1])[mtry.RFModel$test$predicted]
-    # compute accuracy
-    mtry.auc <- (sum(mtry.preds == group.data.testing[,1])/nrow(group.data.testing))*100
-    mtry.df <- rbind(mtry.df,
-                     data.frame(
-                       Mtrys=mtry.mtrys,
-                       Accuracy=mtry.auc
-                       )
-                     )
-    mtry.mtrys <- mtry.mtrys + 1
-  }# end for loop
-
-@
-
-<<Plot Random Forest Amount of MTRYS, echo=TRUE, eval=FALSE>>=
-  mtry.accuracy.plot <- ggplot(mtry.df,
-                               aes(x=Mtrys,
-                                   y=Accuracy))
-  mtry.accuracy.plot <- mtry.accuracy.plot + geom_line() + geom_point()
-  mtry.accuracy.plot <- mtry.accuracy.plot + xlim(1,mtry.mtrys)
-  mtry.accuracy.plot <- mtry.accuracy.plot + theme_calc()
-  mtry.accuracy.plot <- mtry.accuracy.plot + scale_color_calc()
-  mtry.accuracy.plot <- mtry.accuracy.plot + ggtitle("Number of Mtrys vs Model Accuracy")
-  mtry.accuracy.plot <- mtry.accuracy.plot + xlab("Mtrys (Number of Mtrys)")
-  mtry.accuracy.plot <- mtry.accuracy.plot + ylab("Accuracy (percentage %)")
-@
-
-<<mtry plot watermark,eval=TRUE,echo=FALSE>>=
-  mtry.accuracy.plot <- mtry.accuracy.plot + annotation_custom(xmin=-Inf,
-                                                               ymin=-Inf,
-                                                               xmax=Inf,
-                                                               ymax=Inf,
-                                                               rasterGrob(
-                                                                 watermark
-                                                                 )
-                                                               )
-@
-
-<<mtry plot plot,eval=TRUE,echo=FALSE>>=
-  mtry.accuracy.plot
-@
-
-
-
-
-
-<<Create Final Prediction Random Forrest, echo=TRUE, eval=FALSE>>=
-  Final.RFModel <- drandomForest(gname ~ .,
-                                 data=group.data.training,
-                                 mtry=3,
-                                 importance=TRUE,
-                                 na.action=na.omit,
-                                 completeModel=TRUE,
-                                 nExecutor = nExecutor,
-                                 ntree = 200,
-                                 xtest=group.data.testing[,-1],
-                                 ytest=as.data.frame(group.data.testing[,1]))
-  
-  Final.preds <- levels(group.data.training[,1])[Final.RFModel$test$predicted]
-  # compute accuracy
-  Final.auc <- (sum(Final.preds == group.data.testing[,1])/nrow(group.data.testing))*100
-@
-
-<<Final Prediction Model Accuracy Output, echo=TRUE, eval=FALSE>>=
-  cat("Final model prediction accuracy:", Final.auc)
-  @
-  
-  
-  <<Predict Unknown Attacks using Final Prediction Model, echo=TRUE, eval=FALSE>>=
-  predictedUnknowns <- predict.drandomForest(Final.RFModel,
-                                             my_df.AllGroups.Unknown[,-1])
-  my_df.AllGroups.Unknown.Predicted <- cbind(gname=predictedUnknowns,
-                                             my_df.AllGroups.Unknown[,-1])
-@
-
-
-<<Create Bar Plot of all Predicted Terrorist Groups excl Other catagory, echo=TRUE, eval=FALSE>>=
-  my_df.predictedUnknowns.freq <- count(my_df.AllGroups.Unknown.Predicted$gname)
-  my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[!(my_df.predictedUnknowns.freq$x =="Other"), ]
-  my_df.predictedUnknowns.freq <- my_df.predictedUnknowns.freq[order(my_df.predictedUnknowns.freq$freq,
-                                                                     decreasing = T),]
-  my_df.predictedUnknowns.barplot<-ggplot(data=my_df.predictedUnknowns.freq,
-                                          aes(
-                                            x=x,
-                                            y=freq
-                                            )
-                                          ) 
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + geom_bar(stat="identity") 
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + coord_flip()
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + theme_igray()
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + scale_colour_tableau()
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + ggtitle("Predicted Terrorist Groups and corrisponding Attacks")
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + xlab("Terorist Group (Name)")
-  my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + ylab("Quantity of Predicted Incidents (incidents)")
-@
-
-<<Predicted Terrorist Watermark plot,eval=TRUE, echo=FALSE>>=
-my_df.predictedUnknowns.barplot <- my_df.predictedUnknowns.barplot + annotation_custom(xmin=-Inf,
-                                                                                         ymin=-Inf,
-                                                                                         xmax=Inf,
-                                                                                         ymax=Inf,
-                                                                                         rasterGrob(
-                                                                                           watermark
-                                                                                           )
-                                                                                         )
-@
-
-<<Predicted Terrorist plot,eval=TRUE,echo=FALSE>>=
-  my_df.predictedUnknowns.barplot
-@
-
-
-
-<<Output Final Model Results, echo=FALSE, eval=FALSE>>=
+<<Output Final Model Results, echo=TRUE, eval=TRUE>>=
   cat("Quantity of Unknown Terrorist attacks predicted:",
       nrow(my_df.AllGroups.Unknown.Predicted),
       "attacks.")
   cat("Quantity of Unknown Terrorist attacks predicted (Removing Other):",
-      nrow(my_df.AllGroups.Unknown.Predicted[!(my_df.AllGroups.Unknown.Predicted$gname =="Other"), ]),
+      nrow(my_df.AllGroups.Unknown.Predicted[!(my_df.AllGroups.Unknown.Predicted$gname=="Other"), ]),
       "attacks.")
 @
 
