@@ -444,9 +444,25 @@
           }
           myCorpus <- tm_map(myCorpus,
                              content_transformer(removeURL))
-          myCorpus <- tm_map(myCorpus,
-                             function(x) removeWords(x,
-                                                     stopwords("english")))
+          
+          customStopwords <- c("one",
+                               "two",
+                               "three",
+                               "four",
+                               "five",
+                               "six",
+                               "seven",
+                               "eight",
+                               "nine",
+                               "ten"
+                               )
+
+          # myCorpus <- tm_map(myCorpus,
+          #                    function(x) removeWords(x,
+          #                                            stopwords("english")))
+          
+          myCorpus <- tm_map(myCorpus, removeWords, c(stopwords("english"), customStopwords))
+          
           myCorpus <- tm_map(myCorpus,
                              stripWhitespace)
           # Return the text corpus
